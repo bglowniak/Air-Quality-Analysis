@@ -24,5 +24,5 @@ virtualenv venv
 source venv/bin/activate
 # local installation project-specific requirements
 pip install -r requirements.txt
-python main.py
+python app.py
 ```

@@ -13,3 +13,16 @@ Thomas Napolitano
 Clients:  
 Aaron Grober  
 Bradley Goodwin  
+
+# Environment Setup
+```shell
+git clone https://github.com/bglowniak/Air-Quality-Analysis.git
+cd Air-Quality-Analysis
+# global installation of virtualenv
+pip install virtualenv
+virtualenv venv
+source venv/bin/activate
+# local installation project-specific requirements
+pip install -r requirements.txt
+python main.py
+```

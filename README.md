@@ -7,7 +7,7 @@ Austin Bayon
 Brian Glowniak  
 Zach Hussin  
 Joel Katz  
-Pramod Kotipalli
+Pramod Kotipalli  
 Thomas Napolitano  
 
 Clients:  

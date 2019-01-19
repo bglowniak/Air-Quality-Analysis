@@ -1,11 +1,14 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, render_template
 
 app = Flask(__name__)
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
-    return app.send_static_file('index.html')
+    """
+    Gets the index page
+    """
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -21,7 +21,7 @@ cd Air-Quality-Analysis
 # global installation of virtualenv
 pip install virtualenv
 virtualenv venv
-source venv/bin/activate
+source venv/bin/activate # for windows use ls venv/Scripts/activate
 # local installation project-specific requirements
 pip install -r requirements.txt
 python app.py

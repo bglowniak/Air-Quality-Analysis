@@ -25,7 +25,7 @@
                                        id="inputChooseFile"
                                        name="inputChooseFile"
                                        aria-describedby="inputChooseFile">
-                                <label class="custom-file-label" for="inputChooseFile">Choose file</label>
+                                <label id="inputFileLabel" class="custom-file-label" for="inputChooseFile">Choose file</label>
                             </div>
                         </div>
                     </div>
@@ -120,6 +120,11 @@
             $('#startDateFormGroup').hide();
             $('#endDateFormGroup').hide();
         });
+
+        $('#inputChooseFile').on('change', function (event) {
+            var fileName = event.target.files[0].name;
+            $('#inputFileLabel').text(fileName);
+        })
 
         $("input[type=radio][name=useTimeRange]").change(function () {
             if (this.value === 'yes') {

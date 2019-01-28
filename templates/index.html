@@ -4,7 +4,7 @@
 
     <div class="container">
         <div class="row">
-            <div class="col">
+            <div class="offset-md-2 col-md-8">
 
                 <h1>Air Quality Analysis Project</h1>
 
@@ -17,8 +17,8 @@
                 <form>
 
                     <div class="form-group row">
-                        <label for="inputChooseFile" class="col-sm-2 col-form-label">Select Data File</label>
-                        <div class="col-sm-10">
+                        <label for="inputChooseFile" class="col-sm-4 col-form-label">Select Data File</label>
+                        <div class="col-sm-8">
                             <div class="custom-file">
                                 <input type="file"
                                        class="custom-file-input"
@@ -31,31 +31,43 @@
                     </div>
 
                     <div class="form-group row">
-                        <label for="useTimeRange" class="col-sm-2 col-form-label">Use Time Range?</label>
-                        <div class="col-sm-10">
+                        <label for="useTimeRange" class="col-sm-4 col-form-label">Use Time Range?</label>
+                        <div class="col-sm-8">
                             <div class="form-check">
                                 <div class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" id="useTimeRangeYes"
-                                           name="useTimeRange" required>
-                                    <label class="custom-control-label" for="useTimeRangeYes">Yes</label>
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="useTimeRangeYes"
+                                           name="useTimeRange"
+                                           value="yes">
+                                    <label class="custom-control-label"
+                                           for="useTimeRangeYes">Yes</label>
                                 </div>
                                 <div class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" id="useTimeRangeNo"
-                                           name="useTimeRange" required>
-                                    <label class="custom-control-label" for="useTimeRangeNo">No</label>
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="useTimeRangeNo"
+                                           name="useTimeRange"
+                                           value="no">
+                                    <label class="custom-control-label"
+                                           for="useTimeRangeNo">No</label>
                                 </div>
 
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label for="inputChooseFile" class="col-sm-2 col-form-label">Start Date</label>
-                        <div class="col-sm-10">
-                            <div class="input-group date" id="timeRangeStartDateTimePicker" data-target-input="nearest">
-                                <input type="text" class="form-control datetimepicker-input"
+                    <div class="form-group row" id="startDateFormGroup">
+                        <label for="inputChooseFile" class="col-sm-4 col-form-label">Start Date</label>
+                        <div class="col-sm-8">
+                            <div class="input-group date"
+                                 id="timeRangeStartDateTimePicker"
+                                 data-target-input="nearest">
+                                <input type="text"
+                                       class="form-control datetimepicker-input"
                                        data-target="#timeRangeStartDateTimePicker"/>
-                                <div class="input-group-append" data-target="#timeRangeStartDateTimePicker"
+                                <div class="input-group-append"
+                                     data-target="#timeRangeStartDateTimePicker"
                                      data-toggle="datetimepicker">
                                     <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                                 </div>
@@ -63,9 +75,9 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label for="inputChooseFile" class="col-sm-2 col-form-label">End Date</label>
-                        <div class="col-sm-10">
+                    <div class="form-group row" id="endDateFormGroup">
+                        <label for="inputChooseFile" class="col-sm-4 col-form-label">End Date</label>
+                        <div class="col-sm-8">
                             <div class="input-group date" id="timeRangeEndDateTimePicker" data-target-input="nearest">
                                 <input type="text" class="form-control datetimepicker-input"
                                        data-target="#timeRangeEndDateTimePicker"/>
@@ -76,6 +88,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <button class="btn btn-primary btn-block" type="submit">Process File</button>
 
                 </form>
 
@@ -105,6 +119,21 @@
 
         $(function () {
             $('#timeRangeStartDateTimePicker').datetimepicker();
+
+            // hide the time range divs
+            $('#startDateFormGroup').hide();
+            $('#endDateFormGroup').hide();
+        });
+
+        $("input[type=radio][name=useTimeRange]").change(function () {
+            if (this.value === 'yes') {
+                // show the time range divs
+                $('#startDateFormGroup').show();
+                $('#endDateFormGroup').show();
+            } else {
+                $('#startDateFormGroup').hide();
+                $('#endDateFormGroup').hide();
+            }
         })
 
     </script>

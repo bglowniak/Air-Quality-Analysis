@@ -1,18 +1,34 @@
 {% extends 'base.html' %}
 
 {% block container %}
-<div class="container">
-  <div class="row">
-    <div class="col">
+    <div class="container">
+        <div class="row">
+            <div class="offset-md-2 col-md-8">
 
-      <h1>Air Quality Analysis Project</h1>
+                <h1>Air Quality Analysis Project</h1>
 
-      <hr/>
+                <hr/>
 
-      <h2>Analysis Completed!</h2>
-      <h3>Files saved to \Downloads\outputs</h3>
-      <h3>Files analyzed: data.csv</h3>
+                <h2>Analysis Completed!</h2>
+                <h3>Files saved to \Downloads\outputs</h3>
+                <h3>Files analyzed: data.csv</h3>
 
-      <button type="button" class="btn btn-primary" style="float: right;">Start Over</button>
+                <hr/>
 
+                <button type="button" class="btn btn-primary" style="float: right;" id="startOver">Start Over</button>
+            </div>
+        </div>
+    </div>
 {% endblock container %}
+
+{% block scripts %}
+
+    <script type="text/javascript">
+
+        $('#startOver').click(function () {
+            window.location = '/';
+        });
+
+    </script>
+
+{% endblock scripts %}

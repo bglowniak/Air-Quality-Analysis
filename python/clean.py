@@ -1,5 +1,5 @@
 import pandas as pd
-import os.path
+import os
 from abc import ABC, abstractmethod
 
 class data_file(ABC):
@@ -34,5 +34,8 @@ class air_egg(data_file):
 
 #Below is for testing purposes only
 if __name__ == "__main__":
-    obj = air_egg(r'C:\Users\Joel\Documents\GT Courses\Junior Design\data\air_egg.csv')
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    dirname, _ = os.path.split(dirname)
+    filename = os.path.join(dirname, r'data\air_egg.csv')
+    obj = air_egg(filename)
     print(obj.data_frame.head())

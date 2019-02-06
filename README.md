@@ -47,3 +47,5 @@ python app.py
 ### QtDesigner developer tools
 
 Download from https://build-system.fman.io/qt-designer-download
+
+Generate the UI's Python code with `pyuic5 -x ui/QtDesignerUI.ui -o ui/QtDesignerUI.py`.

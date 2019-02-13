@@ -1,0 +1,23 @@
+{
+  "name": "air-quality-analysis",
+  "version": "1.0.0",
+  "description": "GT Junior Design Project for the ATSDR/CDC",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bglowniak/Air-Quality-Analysis.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bglowniak/Air-Quality-Analysis/issues"
+  },
+  "homepage": "https://github.com/bglowniak/Air-Quality-Analysis#readme",
+  "devDependencies": {
+    "electron": "^4.0.4"
+  }
+}

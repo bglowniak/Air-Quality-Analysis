@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block container %}
+
+    <div class="container">
+        <div class="row">
+            <div class="offset-md-2 col-md-8">
+
+                <h1>Air Quality Analysis Project</h1>
+
+                <hr/>
+
+                <!--
+                  Code samples from https://getbootstrap.com/docs/4.0/components/forms/
+                -->
+
+                <form action="/submit-file" method="POST">
+
+                    <div class="form-group row">
+                        <label for="inputChooseFile" class="col-sm-4 col-form-label">Select Data File</label>
+                        <div class="col-sm-8">
+                            <div class="custom-file">
+                                <input type="file"
+                                       class="custom-file-input"
+                                       id="inputChooseFile"
+                                       name="inputChooseFile"
+                                       aria-describedby="inputChooseFile">
+                                <label id="inputFileLabel" class="custom-file-label" for="inputChooseFile">Choose file</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="useTimeRange" class="col-sm-4 col-form-label">Use Time Range?</label>
+                        <div class="col-sm-8">
+                            <div class="form-check">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="useTimeRangeYes"
+                                           name="useTimeRange"
+                                           value="yes">
+                                    <label class="custom-control-label"
+                                           for="useTimeRangeYes">Yes</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="useTimeRangeNo"
+                                           name="useTimeRange"
+                                           value="no">
+                                    <label class="custom-control-label"
+                                           for="useTimeRangeNo">No</label>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row" id="startDateFormGroup">
+                        <label for="inputChooseFile" class="col-sm-4 col-form-label">Start Date</label>
+                        <div class="col-sm-8">
+                            <div class="input-group date"
+                                 id="timeRangeStartDateTimePicker"
+                                 data-target-input="nearest">
+                                <input type="text"
+                                       class="form-control datetimepicker-input"
+                                       data-target="#timeRangeStartDateTimePicker"/>
+                                <div class="input-group-append"
+                                     data-target="#timeRangeStartDateTimePicker"
+                                     data-toggle="datetimepicker">
+                                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row" id="endDateFormGroup">
+                        <label for="inputChooseFile" class="col-sm-4 col-form-label">End Date</label>
+                        <div class="col-sm-8">
+                            <div class="input-group date" id="timeRangeEndDateTimePicker" data-target-input="nearest">
+                                <input type="text" class="form-control datetimepicker-input"
+                                       data-target="#timeRangeEndDateTimePicker"/>
+                                <div class="input-group-append" data-target="#timeRangeEndDateTimePicker"
+                                     data-toggle="datetimepicker">
+                                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" type="submit">Process File</button>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock container %}
+
+{% block styles %}
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+          integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+
+{% endblock styles %}
+
+{% block scripts %}
+
+    <script type="text/javascript">
+
+        $(function () {
+            $('#timeRangeStartDateTimePicker').datetimepicker();
+
+            // hide the time range divs
+            $('#startDateFormGroup').hide();
+            $('#endDateFormGroup').hide();
+        });
+
+        $('#inputChooseFile').on('change', function (event) {
+            var fileName = event.target.files[0].name;
+            $('#inputFileLabel').text(fileName);
+        })
+
+        $("input[type=radio][name=useTimeRange]").change(function () {
+            if (this.value === 'yes') {
+                // show the time range divs
+                $('#startDateFormGroup').show();
+                $('#endDateFormGroup').show();
+            } else {
+                $('#startDateFormGroup').hide();
+                $('#endDateFormGroup').hide();
+            }
+        });
+
+    </script>
+
+{% endblock scripts %}

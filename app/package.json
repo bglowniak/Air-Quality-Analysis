@@ -16,6 +16,9 @@
   "author": "fyears",
   "license": "MIT",
   "dependencies": {
+    "jquery": "^3.3.1",
+    "moment": "^2.24.0",
+    "tempusdominus-bootstrap-4": "^5.1.2",
     "zerorpc": "git+https://github.com/fyears/zerorpc-node.git"
   },
   "devDependencies": {

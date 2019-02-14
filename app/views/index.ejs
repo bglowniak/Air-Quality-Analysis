@@ -1,21 +1,19 @@
-{% extends 'base.html' %}
-
-{% block container %}
-
-    <div class="container">
+<!doctype html>
+<html>
+    <head>
+        <% include partials/head %>
+    </head>
+    <body>
+        <div class="container">
         <div class="row">
             <div class="offset-md-2 col-md-8">
-
                 <h1>Air Quality Analysis Project</h1>
-
                 <hr/>
 
                 <!--
                   Code samples from https://getbootstrap.com/docs/4.0/components/forms/
                 -->
-
-                <form action="/submit-file" method="POST">
-
+                <form>
                     <div class="form-group row">
                         <label for="inputChooseFile" class="col-sm-4 col-form-label">Select Data File</label>
                         <div class="col-sm-8">
@@ -88,55 +86,12 @@
                             </div>
                         </div>
                     </div>
-
-                    <button class="btn btn-primary btn-block" type="submit">Process File</button>
-
                 </form>
-
+                <button class="btn btn-primary btn-block" id="process">Process File</button>
             </div>
         </div>
-    </div>
-
-{% endblock container %}
-
-{% block styles %}
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css"/>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
-          integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-
-
-{% endblock styles %}
-
-{% block scripts %}
-
-    <script type="text/javascript">
-
-        $(function () {
-            $('#timeRangeStartDateTimePicker').datetimepicker();
-
-            // hide the time range divs
-            $('#startDateFormGroup').hide();
-            $('#endDateFormGroup').hide();
-        });
-
-        $('#inputChooseFile').on('change', function (event) {
-            var fileName = event.target.files[0].name;
-            $('#inputFileLabel').text(fileName);
-        })
-
-        $("input[type=radio][name=useTimeRange]").change(function () {
-            if (this.value === 'yes') {
-                // show the time range divs
-                $('#startDateFormGroup').show();
-                $('#endDateFormGroup').show();
-            } else {
-                $('#startDateFormGroup').hide();
-                $('#endDateFormGroup').hide();
-            }
-        });
-
-    </script>
-
-{% endblock scripts %}
+        </div>
+        <% include partials/scripts %>
+        <script type="text/javascript" src="../js/index.js"></script>
+    </body>
+</html>

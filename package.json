@@ -2,7 +2,7 @@
   "name": "air-quality-analysis",
   "version": "1.0.0",
   "description": "GT Junior Design Project for the ATSDR/CDC",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron ."
@@ -19,5 +19,8 @@
   "homepage": "https://github.com/bglowniak/Air-Quality-Analysis#readme",
   "devDependencies": {
     "electron": "^4.0.4"
+  },
+  "dependencies": {
+    "ejs-electron": "^2.0.3"
   }
 }

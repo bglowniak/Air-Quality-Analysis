@@ -1,7 +1,11 @@
-{% extends 'base.html' %}
+<!doctype html>
+<html>
+    <head>
+        <% include partials/head %>
+    </head>
 
-{% block container %}
-    <div class="container">
+    <body>
+        <div class="container">
         <div class="row">
             <div class="offset-md-2 col-md-8">
 
@@ -18,17 +22,13 @@
                 <button type="button" class="btn btn-primary" style="float: right;" id="startOver">Start Over</button>
             </div>
         </div>
-    </div>
-{% endblock container %}
+        </div>
+        <% include partials/scripts %>
+        <script type="text/javascript">
 
-{% block scripts %}
-
-    <script type="text/javascript">
-
-        $('#startOver').click(function () {
-            window.location = '/';
-        });
-
-    </script>
-
-{% endblock scripts %}
+            $('#startOver').click(function () {
+                window.location.href = "../views/index.ejs";
+            });
+        </script>
+    </body>
+</html>

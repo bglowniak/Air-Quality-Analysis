@@ -35,13 +35,23 @@ virtualenv -p path/to/python3 venv
 source venv/bin/activate
   
 # 3. On Windows:
-venv/Scripts/activate.bat
+.\venv\Scripts\activate.bat
   
 # 4. Local installation project-specific requirements
 pip install -r requirements.txt
   
 # 5. Run the app
 python app.py
+```
+
+To install a new package:
+```shell
+# 1. Install the package in your virtual environment
+pip install package-name
+EX) pip install python-dateutil
+
+# 2. Add it to the requirements.txt
+pip freeze > requirements.txt
 ```
 
 ### QtDesigner developer tools

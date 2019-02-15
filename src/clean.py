@@ -1,12 +1,13 @@
-import pandas as pd
 import os
-from abc import ABC, abstractmethod
+import dateutil.parser
+import pandas as pd
 
-class data_file(ABC):
-    """Abstract base class for data files"""
+
+class data_file():
     def __init__(self, file_name):
         self.file_name = file_name
         self.data_frame = self.read()
+        self.clean()
 
     def read(self):
         try:
@@ -18,24 +19,50 @@ class data_file(ABC):
         except IOError as ioe:
             print(ioe)
 
-    @abstractmethod
     def clean(self):
+        #figure out file type, calls correct function
+        if self.data_frame.iloc[0,0] == 'AirBeam2-F':
+            self.clean_air_beam()
+        elif self.data_frame.iloc[0,0] == 'asdf':
+            self.clean_purple_air()
+        elif self.data_frame.iloc[0,0] == 'fdsa':
+            self.clean_air_egg()
+
+    def clean_purple_air(self):
         pass
 
-class air_egg(data_file):
-    def __init__(self, file_name):
-        super().__init__(file_name)
-        self.clean()
-
-    def clean(self):
+    def clean_air_egg(self):
         pass
-        #self.data_frame.columns = ['Timestamp', 'Temperature']
+        
+    def clean_air_beam(self):
+        beam = self.data_frame
+        splits = list(beam[beam['sensor:model'] == 'sensor:model'].index)
+        df1 = beam.iloc[0:splits[0]]
+        df2 = beam.iloc[splits[0]:splits[1]]
+        df3 = beam.iloc[splits[1]:splits[2]]
+        df4 = beam.iloc[splits[2]:splits[3]]
+        df1.columns = ['Datetime', 'Latitude', 'Longitude', 'Temperature']
+        df1 = df1.drop([0,1])
+        df2.columns = ['Datetime', 'Latitude', 'Longitude', 'Humidity']
+        df2 = df2.drop(df2.index[0:3])
+        df3.columns = ['Datetime', 'Latitude', 'Longitude', 'PM2.5']
+        df3 = df3.drop(df3.index[0:3])
+        df4.columns = ['Datetime', 'Latitude', 'Longitude', 'PM10.0']
+        df4 = df4.drop(df4.index[0:3])
+        beam = pd.merge(df1, df2, how='outer', on=['Datetime', 'Latitude', 'Longitude'])
+        beam = pd.merge(beam, df3, how='outer', on=['Datetime', 'Latitude', 'Longitude'])
+        beam = pd.merge(beam, df4, how='outer', on=['Datetime', 'Latitude', 'Longitude'])
+        beam['Datetime'] = beam['Datetime'].apply(getDateTimeFromISO8601String)
+        self.data_frame = beam
 
+def getDateTimeFromISO8601String(s):
+    d = dateutil.parser.parse(s)
+    return d
 
 #Below is for testing purposes only
 if __name__ == "__main__":
     dirname = os.path.dirname(os.path.abspath(__file__))
     dirname, _ = os.path.split(dirname)
-    filename = os.path.join(dirname, r'data\air_egg.csv')
-    obj = air_egg(filename)
+    filename = os.path.join(dirname, r'data\Air_beam_7_31_8.22.csv')
+    obj = data_file(filename)
     print(obj.data_frame.head())

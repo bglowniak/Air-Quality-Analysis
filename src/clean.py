@@ -1,7 +1,12 @@
 import os
 import dateutil.parser
 import pandas as pd
+from enum import Enum
 
+class Color(Enum):
+    AIR_BEAM = 1
+    PURPLE_AIR = 2
+    AIR_EGG = 3
 
 class data_file():
     def __init__(self, file_name):
@@ -21,19 +26,24 @@ class data_file():
 
     def clean(self):
         #figure out file type, calls correct function
-        if self.data_frame.iloc[0,0] == 'AirBeam2-F':
+        if self.data_frame.columns[0] == 'sensor:model':
+            self.file_type = Color.AIR_BEAM
             self.clean_air_beam()
-        elif self.data_frame.iloc[0,0] == 'asdf':
+        elif self.data_frame.columns[0] == 'created_at':
+            self.file_type = Color.PURPLE_AIR
             self.clean_purple_air()
-        elif self.data_frame.iloc[0,0] == 'fdsa':
+        elif self.data_frame.columns[0] == 'Timestamp':
+            self.file_type = Color.AIR_EGG
             self.clean_air_egg()
 
     def clean_purple_air(self):
-        pass
+        self.data_frame.columns = ['Datetime', 'entry_id', 'PM1.0', 'PM2.5', 'PM10.0', 'UptimeMinutes', 'RSSI_dbm', 'Temperature', 'Humidity', 'Pm2.5_CF_1_ug/m3']
+        self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
 
     def clean_air_egg(self):
-        pass
-        
+        self.data_frame.columns = ['Datetime', 'Temperature', 'Humidity', 'SO2[ppb]', 'SO2[V]', 'PM1.0', 'PM2.5', 'PM10.0', 'Pressure', 'Latitude', 'Longitude', 'Altitude']
+        self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
+
     def clean_air_beam(self):
         beam = self.data_frame
         splits = list(beam[beam['sensor:model'] == 'sensor:model'].index)
@@ -52,10 +62,10 @@ class data_file():
         beam = pd.merge(df1, df2, how='outer', on=['Datetime', 'Latitude', 'Longitude'])
         beam = pd.merge(beam, df3, how='outer', on=['Datetime', 'Latitude', 'Longitude'])
         beam = pd.merge(beam, df4, how='outer', on=['Datetime', 'Latitude', 'Longitude'])
-        beam['Datetime'] = beam['Datetime'].apply(getDateTimeFromISO8601String)
+        beam['Datetime'] = beam['Datetime'].apply(parse_time_string)
         self.data_frame = beam
 
-def getDateTimeFromISO8601String(s):
+def parse_time_string(s):
     d = dateutil.parser.parse(s)
     return d
 
@@ -63,6 +73,7 @@ def getDateTimeFromISO8601String(s):
 if __name__ == "__main__":
     dirname = os.path.dirname(os.path.abspath(__file__))
     dirname, _ = os.path.split(dirname)
-    filename = os.path.join(dirname, r'data\Air_beam_7_31_8.22.csv')
-    obj = data_file(filename)
-    print(obj.data_frame.head())
+    for i in ['Air_beam_7_31_8.22', 'air_egg', 'Purple_air']:
+        filename = os.path.join(dirname, r'data/' + i + '.csv')
+        obj = data_file(filename)
+        print(obj.data_frame.head())

@@ -1,7 +1,12 @@
 import os
 import dateutil.parser
 import pandas as pd
+from enum import Enum
 
+class Color(Enum):
+    AIR_BEAM = 1
+    PURPLE_AIR = 2
+    AIR_EGG = 3
 
 class data_file():
     def __init__(self, file_name):
@@ -21,11 +26,14 @@ class data_file():
 
     def clean(self):
         #figure out file type, calls correct function
-        if self.data_frame.iloc[0,0] == 'AirBeam2-F':
+        if self.data_frame.columns[0] == 'sensor:model':
+            self.file_type = Color.AIR_BEAM
             self.clean_air_beam()
-        elif self.data_frame.iloc[0,0] == 'asdf':
+        elif self.data_frame.columns[0] == 'created_at':
+            self.file_type = Color.PURPLE_AIR
             self.clean_purple_air()
-        elif self.data_frame.iloc[0,0] == 'fdsa':
+        elif self.data_frame.columns[0] == 'Timestamp':
+            self.file_type = Color.AIR_EGG
             self.clean_air_egg()
 
     def clean_purple_air(self):

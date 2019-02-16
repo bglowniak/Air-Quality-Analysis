@@ -1,9 +1,10 @@
 from fbs_runtime.application_context import ApplicationContext
 from functools import partial
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar
 
 from PyQt5.QtCore import QDateTime
 
+import threading
 import sys
 
 class AppContext(ApplicationContext):
@@ -16,30 +17,50 @@ class AppContext(ApplicationContext):
 class MainWindow(QMainWindow):
     def __init__(self, version):
         super().__init__()
-        central_widget = QWidget()
-        #central_widget.setFixedWidth(400)
+        self.main_widget = MainWidget()
+        self.progress_widget = ProgressWidget()
+        self.complete_widget = CompleteWidget()
 
-        # set up layouts and widgets
-        self.master_layout = QVBoxLayout()
+        self.master = QStackedWidget()
+        self.master.addWidget(self.main_widget)
+        self.master.addWidget(self.progress_widget)
+        self.master.addWidget(self.complete_widget)
+
+        self.setCentralWidget(self.master)
+        self.setWindowTitle("CDC/ATSDR Air Quality Analysis v" + version)
+        self.setFixedSize(500, 250)
+
+    def start_analysis(self, filename, averaging_duration):
+        print("Starting analysis with " + filename + " and " + averaging_duration)
+        self.master.setCurrentIndex(1)
+        self.progress_widget.begin_progress()
+
+    def complete_analysis(self):
+        self.master.setCurrentIndex(2)
+
+    def start_over(self):
+        self.master.setCurrentIndex(0)
+
+
+class MainWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QVBoxLayout()
         self.file_select_layout = self.file_select_layout()
         self.averaging_duration_layout = self.averaging_duration_layout()
         self.time_range_layout = self.time_range_layout()
         self.time_selectors = self.time_selectors()
 
-        # apply layouts and show window
-        self.master_layout.addLayout(self.file_select_layout)
-        self.master_layout.addLayout(self.averaging_duration_layout)
-        self.master_layout.addLayout(self.time_range_layout)
-        self.master_layout.addWidget(self.time_selectors)
+        self.layout.addLayout(self.file_select_layout)
+        self.layout.addLayout(self.averaging_duration_layout)
+        self.layout.addLayout(self.time_range_layout)
+        self.layout.addWidget(self.time_selectors)
 
         process_file = QPushButton("Process File")
         process_file.clicked.connect(self.begin_process)
-        self.master_layout.addWidget(process_file)
+        self.layout.addWidget(process_file)
 
-        central_widget.setLayout(self.master_layout)
-        self.setCentralWidget(central_widget)
-        self.setWindowTitle("CDC/ATSDR Air Quality Analysis v" + version)
-        self.setFixedSize(500, 250)
+        self.setLayout(self.layout)
 
     def file_select_layout(self):
         layout = QHBoxLayout()
@@ -59,6 +80,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("Select Averaging Duration:"))
 
         comboBox = QComboBox(self)
+        self.averaging_duration = "1 Minute" # default
         comboBox.addItem("1 Minute")
         comboBox.addItem("5 Minutes")
         comboBox.addItem("1 Hour")
@@ -67,9 +89,14 @@ class MainWindow(QMainWindow):
         comboBox.addItem("6 Months")
         comboBox.addItem("1 Year")
 
+        comboBox.currentIndexChanged.connect(partial(self.selection_change, comboBox))
+
         layout.addWidget(comboBox)
 
         return layout
+
+    def selection_change(self, cb):
+        self.averaging_duration = cb.currentText()
 
     def time_range_layout(self):
         layout = QHBoxLayout()
@@ -113,7 +140,8 @@ class MainWindow(QMainWindow):
     def get_file(self, label):
         fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "", "All Files (*)")
         if fileName:
-            label.setText(fileName.split("/")[-1])
+            self.file = fileName.split("/")[-1]
+            label.setText(self.file)
 
     def rb_state(self, clicked):
         if clicked.text() == "Yes" and clicked.isChecked() == True:
@@ -122,7 +150,39 @@ class MainWindow(QMainWindow):
             self.time_selectors.hide()
 
     def begin_process(self):
-        print("Beginning File Process With:")
+        self.parentWidget().parentWidget().start_analysis(self.file, self.averaging_duration)
+
+class ProgressWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(QLabel("Analysis in progress..."))
+
+        self.progress = QProgressBar()
+        self.layout.addWidget(self.progress)
+
+        self.setLayout(self.layout)
+
+    def begin_progress(self):
+        self.completed = 0
+
+        while self.completed < 100:
+            self.completed += .00001
+            self.progress.setValue(self.completed)
+
+        self.parentWidget().parentWidget().complete_analysis()
+
+
+class CompleteWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(QLabel("Analysis Complete!"))
+
+        self.setLayout(self.layout)
+
 
 if __name__ == '__main__':
     appctxt = AppContext()

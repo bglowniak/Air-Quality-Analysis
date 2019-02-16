@@ -46,6 +46,8 @@ class MainWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.layout = QVBoxLayout()
+        self.title_label = QLabel("CDC Air Quality Analysis")
+        self.layout.addWidget(self.title_label)
         self.file_select_layout = self.file_select_layout()
         self.averaging_duration_layout = self.averaging_duration_layout()
         self.time_range_layout = self.time_range_layout()
@@ -138,7 +140,7 @@ class MainWidget(QWidget):
         widget.setLayout(layout)
 
         widget.setFixedHeight(50)
-        widget.hide()
+        widget.setEnabled(False)
         return widget
 
     def get_file(self, label):
@@ -149,10 +151,10 @@ class MainWidget(QWidget):
 
     def rb_state(self, clicked):
         if clicked.text() == "Yes" and clicked.isChecked() == True:
-            self.time_selectors.show()
+            self.time_selectors.setEnabled(True)
             self.time_selected = True
         elif clicked.text() == "No" and clicked.isChecked() == True:
-            self.time_selectors.hide()
+            self.time_selectors.setEnabled(False)
             self.time_selected = False
 
     def begin_process(self):

@@ -30,6 +30,72 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("CDC/ATSDR Air Quality Analysis v" + version)
         self.setFixedSize(500, 250)
 
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #e8e8e8;
+                font-family: 'Helvetica', 'Arial', sans-serif;
+                font-size: 9pt;
+            }
+
+            QPushButton {
+                background-color: #4285f4;
+                color: #ffffff;
+                border: 0px;
+                padding: 5px;
+                border-radius: 5px;
+            }
+
+            QLabel#title {
+                font-size: 14pt;
+                qproperty-alignment: AlignCenter;
+                padding: 0px;
+                font-weight: bold;
+                color: #4285f4;
+            }
+
+            QLabel#fileName {
+                background-color: white;
+                border-color: #4285f4;
+                border-width: 1px;
+                border-style: solid;
+                border-radius: 5px;
+                padding-left: 5px;
+            }
+
+            QComboBox {
+               background: white;
+               border-style: solid;
+               border-width: 1px;
+               border-color: #4285f4;
+               border-radius: 5px;
+               color: black;
+               min-height: 20px;
+            }
+            QComboBox:on {
+               border-radius: 30px;
+               background:transparent;
+            }
+            QComboBox::drop-down {
+               image: None;
+               subcontrol-position: center right;
+               margin-right: 10px;
+            }
+            QComboBox QAbstractItemView::item {
+               padding: 10px 10px 10px 10px;
+            }
+            QComboBox QAbstractItemView {
+               color: #4285f4;
+               background: transparent;
+            }
+            QComboBox QListView::item {
+               border-style: solid;
+               border-width: 1px;
+               border-color: #4285f4;
+               border-radius: 20px;
+            }
+
+            """)
+
     def start_analysis(self, filename, averaging_duration, time_selected, start_time, end_time):
         self.master.setCurrentIndex(1)
         self.progress_widget.begin_progress(filename, averaging_duration, start_time, end_time)
@@ -47,6 +113,7 @@ class MainWidget(QWidget):
         super().__init__()
         self.layout = QVBoxLayout()
         self.title_label = QLabel("CDC Air Quality Analysis")
+        self.title_label.setObjectName("title")
         self.layout.addWidget(self.title_label)
         self.file_select_layout = self.file_select_layout()
         self.averaging_duration_layout = self.averaging_duration_layout()
@@ -69,6 +136,7 @@ class MainWidget(QWidget):
         layout.addWidget(QLabel("Select Data File:"))
 
         self.file_name = QLabel("No File Selected")
+        self.file_name.setObjectName("fileName")
         button = QPushButton("Browse")
         button.clicked.connect(partial(self.get_file, self.file_name))
 

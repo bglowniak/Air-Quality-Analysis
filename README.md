@@ -41,6 +41,9 @@ source venv/bin/activate
 pip install -r requirements.txt
   
 # 5. Run the app
+fbs run
+
+//old run method
 python app.py
 ```
 

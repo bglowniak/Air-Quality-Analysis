@@ -27,74 +27,11 @@ class MainWindow(QMainWindow):
         self.master.addWidget(self.complete_widget)
 
         self.setCentralWidget(self.master)
-        self.setWindowTitle("CDC/ATSDR Air Quality Analysis v" + version)
+        self.setWindowTitle("Air Quality Analysis v" + version)
         self.setFixedSize(500, 250)
 
-        self.setStyleSheet("""
-            QWidget {
-                background-color: #e8e8e8;
-                font-family: 'Helvetica', 'Arial', sans-serif;
-                font-size: 9pt;
-            }
-
-            QPushButton {
-                background-color: #4285f4;
-                color: #ffffff;
-                border: 0px;
-                padding: 5px;
-                border-radius: 5px;
-            }
-
-            QLabel#title {
-                font-size: 14pt;
-                qproperty-alignment: AlignCenter;
-                padding: 0px;
-                font-weight: bold;
-                color: #4285f4;
-            }
-
-            QLabel#fileName {
-                background-color: white;
-                border-color: #4285f4;
-                border-width: 1px;
-                border-style: solid;
-                border-radius: 5px;
-                padding-left: 5px;
-            }
-
-            QComboBox {
-               background: white;
-               border-style: solid;
-               border-width: 1px;
-               border-color: #4285f4;
-               border-radius: 5px;
-               color: black;
-               min-height: 20px;
-            }
-            QComboBox:on {
-               border-radius: 30px;
-               background:transparent;
-            }
-            QComboBox::drop-down {
-               image: None;
-               subcontrol-position: center right;
-               margin-right: 10px;
-            }
-            QComboBox QAbstractItemView::item {
-               padding: 10px 10px 10px 10px;
-            }
-            QComboBox QAbstractItemView {
-               color: #4285f4;
-               background: transparent;
-            }
-            QComboBox QListView::item {
-               border-style: solid;
-               border-width: 1px;
-               border-color: #4285f4;
-               border-radius: 20px;
-            }
-
-            """)
+        stylesheet = open("./src/main/python/style.qss", "r").read()
+        self.setStyleSheet(stylesheet)
 
     def start_analysis(self, filename, averaging_duration, time_selected, start_time, end_time):
         self.master.setCurrentIndex(1)

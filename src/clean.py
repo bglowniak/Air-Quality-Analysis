@@ -45,6 +45,8 @@ class data_file():
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
 
     def clean_air_beam(self):
+        #TODO: if the values can change on different runs of this sensor, this will need to be changed to be more dynamic
+        #That means using the splits, find the Value name, then add the dataframes to a list, then iterate over that list to merge
         beam = self.data_frame
         splits = list(beam[beam['sensor:model'] == 'sensor:model'].index)
         df1 = beam.iloc[0:splits[0]]

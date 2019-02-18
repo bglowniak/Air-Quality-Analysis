@@ -4,18 +4,18 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPush
 
 from PyQt5.QtCore import QDateTime
 
-import threading
 import sys
 
 class AppContext(ApplicationContext):
     def run(self):
         version = self.build_settings['version']
-        main_screen = MainWindow(version)
+        stylesheet = self.get_resource('style.qss')
+        main_screen = MainWindow(version, open(stylesheet).read())
         main_screen.show()
         return self.app.exec_()
 
 class MainWindow(QMainWindow):
-    def __init__(self, version):
+    def __init__(self, version, stylesheet):
         super().__init__()
         self.main_widget = MainWidget()
         self.progress_widget = ProgressWidget()
@@ -30,7 +30,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Air Quality Analysis v" + version)
         self.setFixedSize(500, 250)
 
-        stylesheet = open("./src/main/python/style.qss", "r").read()
         self.setStyleSheet(stylesheet)
 
     def start_analysis(self, filename, averaging_duration, time_selected, start_time, end_time):
@@ -43,7 +42,6 @@ class MainWindow(QMainWindow):
     def start_over(self):
         self.master.widget(0).reset()
         self.master.setCurrentIndex(0)
-
 
 class MainWidget(QWidget):
     def __init__(self):
@@ -228,11 +226,10 @@ class ProgressWidget(QWidget):
         self.completed = 0
 
         while self.completed < 100:
-            self.completed += .00001
+            self.completed += .00005
             self.progress.setValue(self.completed)
 
         self.parentWidget().parentWidget().complete_analysis()
-
 
 class CompleteWidget(QWidget):
     def __init__(self):
@@ -249,7 +246,6 @@ class CompleteWidget(QWidget):
 
     def reset(self):
         self.parentWidget().parentWidget().start_over()
-
 
 if __name__ == '__main__':
     appctxt = AppContext()

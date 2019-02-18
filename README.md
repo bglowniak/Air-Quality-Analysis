@@ -2,23 +2,26 @@
 
 GT Junior Design Project for the ATSDR/CDC
 
-Team Members:
-Austin Bayon
-Brian Glowniak
-Zach Hussin
-Joel Katz
-Pramod Kotipalli
-Thomas Napolitano
+Team Members:  
+Austin Bayon  
+Brian Glowniak  
+Zach Hussin  
+Joel Katz  
+Pramod Kotipalli  
+Thomas Napolitano  
 
-Clients:
-Aaron Grober
-Bradley Goodwin
+Clients:  
+Aaron Grober  
+Bradley Goodwin  
 
 ## Development Information
 
 ### Libraries Used
-    * [PyQt5](https://pypi.org/project/PyQt5/) - PyQt5 is a set of Python bindings for Qt, which is a widely used set of cross platform C++ libraries for developing desktop GUIs.
-    * [fbs](https://github.com/mherrmann/fbs) - fman build system is a library created by Michael Herrmann that is used to easily package PyQt5 apps for cross-platform distribution.
+
+  * [PyQt5](https://pypi.org/project/PyQt5) - PyQt5 is a set of Python bindings for Qt, which is a widely used set of cross platform C++ libraries for developing desktop GUIs.
+  * [fbs](https://github.com/mherrmann/fbs) - fman build system is a library created by Michael Herrmann that is used to easily package PyQt5 apps for cross-platform distribution.
+  * pandas
+  * numpy
 
 ### Environment Setup
 

@@ -73,9 +73,12 @@ def parse_time_string(s):
 
 #Below is for testing purposes only
 if __name__ == "__main__":
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    dirname, _ = os.path.split(dirname)
+    python_folder = os.path.dirname(os.path.abspath(__file__))
+    main_folder = os.path.dirname(python_folder)
+    src_folder = os.path.dirname(main_folder)
+    app_folder = os.path.dirname(src_folder)
+
     for i in ['Air_beam_7_31_8.22', 'air_egg', 'Purple_air']:
-        filename = os.path.join(dirname, r'data/' + i + '.csv')
+        filename = os.path.join(app_folder, r'data/' + i + '.csv')
         obj = data_file(filename)
         print(obj.data_frame.head())

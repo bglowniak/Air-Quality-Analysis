@@ -29,6 +29,16 @@ QLabel#fileName {
   padding-left: 5px;
 }
 
+QLabel#instruction {
+  font-weight: bold;
+}
+
+QLabel#details {
+  qproperty-alignment: AlignCenter;
+  font-size: 10pt;
+  padding: 0px;
+}
+
 QComboBox {
   background: white;
   border-style: solid;
@@ -37,6 +47,10 @@ QComboBox {
   border-radius: 5px;
   color: black;
   min-height: 20px;
+}
+
+QMessageBox {
+  width: 500px;
 }
 
 QComboBox:on {

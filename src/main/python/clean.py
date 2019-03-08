@@ -2,49 +2,104 @@ import os
 import dateutil.parser
 import pandas as pd
 from enum import Enum
+from abc import ABC, abstractmethod
 
-class Color(Enum):
+class Sensor(Enum):
     AIR_BEAM = 1
     PURPLE_AIR = 2
     AIR_EGG = 3
+    INVALID = 4
 
-class data_file():
-    def __init__(self, file_name):
-        self.file_name = file_name
-        self.data_frame = self.read()
-        self.clean()
+def process_file(filepath, start_time=None, stop_time=None, averaging_range=None):
+    '''Interface to Front End
 
-    def read(self):
-        try:
-            if os.path.splitext(self.file_name)[1] == '.csv':
-                return pd.read_csv(self.file_name)
-            return pd.read_excel(self.file_name)
-        except FileNotFoundError as fnfe:
-            print(fnfe)
-        except IOError as ioe:
-            print(ioe)
+    @param filepath: string path to file input
+    @param start_time: string or python time object for start of range to filter data
+    @param stop_time: string or python time object for stop of range to filter data
+    @param averaging_range: string or pythong time object for averaging range
 
+    @result String filepath for resulting PDF file
+    '''
+    file_dir = os.path.dirname(filepath)
+    #temp
+    cleaned_dir = os.path.join(file_dir, 'data_out')
+    if not os.path.exists(cleaned_dir):
+        os.makedirs(cleaned_dir)
+    #temp
+    data = read_file(filepath)
+    data_type = identify_file(data)
+    if data_type == Sensor.AIR_BEAM:
+        data_obj = Air_Beam(data)
+    elif data_type == Sensor.AIR_EGG:
+        data_obj = Air_Egg(data)
+    elif data_type == Sensor.PURPLE_AIR:
+        data_obj = Purple_Air(data)
+    data_obj.clean()
+    #data_obj.make_pdf()
+    #below is temporary, should be changed in the future
+    print(data_obj.data_frame.head())
+    return data_obj.write_csv(cleaned_dir, data_type)
+
+def read_file(file_path):
+    #reads file and returns pandas dataframe
+    try:
+        if os.path.splitext(file_path)[1] == '.csv':
+            return pd.read_csv(file_path)
+        return pd.read_excel(file_path)
+    except FileNotFoundError as fnfe:
+        print(fnfe)
+    except IOError as ioe:
+        print(ioe)
+
+def identify_file(data_frame):
+    #figures out file type
+    identifier = data_frame.columns[0]
+    if identifier == 'sensor:model':
+        return Sensor.AIR_BEAM
+    if identifier == 'created_at':
+        return Sensor.PURPLE_AIR
+    if identifier == 'Timestamp':
+        return Sensor.AIR_EGG
+    return Sensor.INVALID
+
+class Data_File(ABC):
+    '''Abstract base class for a data file, subclasses must overwrite the clean function
+
+    @param data_frame: pandas data frame object to set as instance data for this data file
+
+    @function clean: must be overwritten in subclass to clean based on object type
+    TODO: @function make_pdf: 
+    '''
+    def __init__(self, data_frame):
+        self.data_frame = data_frame
+
+    @abstractmethod
     def clean(self):
-        #figure out file type, calls correct function
-        if self.data_frame.columns[0] == 'sensor:model':
-            self.file_type = Color.AIR_BEAM
-            self.clean_air_beam()
-        elif self.data_frame.columns[0] == 'created_at':
-            self.file_type = Color.PURPLE_AIR
-            self.clean_purple_air()
-        elif self.data_frame.columns[0] == 'Timestamp':
-            self.file_type = Color.AIR_EGG
-            self.clean_air_egg()
+        pass
 
-    def clean_purple_air(self):
+    def write_csv(self, file_dir, data_type):
+        #probably should delete this method eventually
+        fn = ''
+        if data_type == Sensor.AIR_BEAM:
+            fn = 'Air_Beam_Output.csv'
+        elif data_type == Sensor.PURPLE_AIR:
+            fn = 'Purple_Air_Output.csv'
+        elif data_type == Sensor.AIR_EGG:
+            fn = 'Air_Egg_Output.csv'
+        self.data_frame.to_csv(os.path.join(file_dir, fn))
+
+class Purple_Air(Data_File):
+    def clean(self):
         self.data_frame.columns = ['Datetime', 'entry_id', 'PM1.0', 'PM2.5', 'PM10.0', 'UptimeMinutes', 'RSSI_dbm', 'Temperature', 'Humidity', 'Pm2.5_CF_1_ug/m3']
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
 
-    def clean_air_egg(self):
+class Air_Egg(Data_File):
+    def clean(self):
         self.data_frame.columns = ['Datetime', 'Temperature', 'Humidity', 'SO2[ppb]', 'SO2[V]', 'PM1.0', 'PM2.5', 'PM10.0', 'Pressure', 'Latitude', 'Longitude', 'Altitude']
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
 
-    def clean_air_beam(self):
+class Air_Beam(Data_File):
+    def clean(self):
         #TODO: if the values can change on different runs of this sensor, this will need to be changed to be more dynamic
         #That means using the splits, find the Value name, then add the dataframes to a list, then iterate over that list to merge
         beam = self.data_frame
@@ -70,7 +125,7 @@ class data_file():
 def parse_time_string(s):
     d = dateutil.parser.parse(s)
     return d
-
+   
 #Below is for testing purposes only
 if __name__ == "__main__":
     python_folder = os.path.dirname(os.path.abspath(__file__))
@@ -80,5 +135,4 @@ if __name__ == "__main__":
 
     for i in ['Air_beam_7_31_8.22', 'air_egg', 'Purple_air']:
         filename = os.path.join(app_folder, r'data/' + i + '.csv')
-        obj = data_file(filename)
-        print(obj.data_frame.head())
+        process_file(filename)

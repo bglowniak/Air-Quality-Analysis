@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.master)
         self.setWindowTitle("Air Quality Analysis v" + version)
-        self.setFixedSize(500, 250)
+        self.setFixedSize(500, 300)
 
         self.setStyleSheet(stylesheet)
 
@@ -68,7 +68,9 @@ class MainWidget(QWidget):
 
     def file_select_layout(self):
         layout = QHBoxLayout()
-        layout.addWidget(QLabel("Select Data File:"))
+        instruction = QLabel("Select Date File:")
+        instruction.setObjectName("instruction")
+        layout.addWidget(instruction)
 
         self.file_name = QLabel("No File Selected")
         self.file_name.setObjectName("fileName")
@@ -80,11 +82,15 @@ class MainWidget(QWidget):
 
         self.file = None
 
+        layout.setContentsMargins(6,10,6,8)
+
         return layout
 
     def averaging_duration_layout(self):
         layout = QHBoxLayout()
-        layout.addWidget(QLabel("Select Averaging Duration:"))
+        instruction = QLabel("Select Averaging Duration:")
+        instruction.setObjectName("instruction")
+        layout.addWidget(instruction)
 
         comboBox = QComboBox(self)
         self.averaging_duration = "1 Minute" # default
@@ -100,6 +106,8 @@ class MainWidget(QWidget):
 
         layout.addWidget(comboBox)
 
+        layout.setContentsMargins(6,8,6,8)
+
         return layout
 
     def selection_change(self, cb):
@@ -107,7 +115,9 @@ class MainWidget(QWidget):
 
     def time_range_layout(self):
         layout = QHBoxLayout()
-        layout.addWidget(QLabel("Use Time Range?"))
+        instruction = QLabel("Use Time Range?")
+        instruction.setObjectName("instruction")
+        layout.addWidget(instruction)
 
         yes_rb = QRadioButton("Yes")
         no_rb = QRadioButton("No")
@@ -121,19 +131,28 @@ class MainWidget(QWidget):
 
         self.time_selected = False
 
+        layout.setContentsMargins(6,8,6,8)
+        layout.insertSpacing(1, 85)
+        layout.insertSpacing(3, 80)
+
         return layout
 
     def time_selectors(self):
         widget = QWidget()
         layout = QHBoxLayout()
-        layout.addWidget(QLabel("Start Time: "))
+
+        instruction = QLabel("Start Time:")
+        instruction.setObjectName("instruction")
+        layout.addWidget(instruction)
 
         self.start = QDateTimeEdit(self)
         self.start.setCalendarPopup(True)
         self.start.setDateTime(QDateTime.currentDateTime())
         layout.addWidget(self.start)
 
-        layout.addWidget(QLabel("End Time: "))
+        instruction2 = QLabel("End Time:")
+        instruction2.setObjectName("instruction")
+        layout.addWidget(instruction2)
 
         self.end = QDateTimeEdit(self)
         self.end.setCalendarPopup(True)
@@ -144,6 +163,9 @@ class MainWidget(QWidget):
 
         widget.setFixedHeight(50)
         widget.setEnabled(False)
+
+        layout.setContentsMargins(6,8,6,10)
+
         return widget
 
     def get_file(self, label):
@@ -196,12 +218,19 @@ class ProgressWidget(QWidget):
         super().__init__()
 
         self.layout = QVBoxLayout()
-        self.layout.addWidget(QLabel("Analysis in progress..."))
+
+        self.title_label = QLabel("Analysis in progress...")
+        self.title_label.setObjectName("title")
+        self.layout.addWidget(self.title_label)
 
         self.filename_label = QLabel("")
+        self.filename_label.setObjectName("details")
         self.averaging_label = QLabel("")
+        self.averaging_label.setObjectName("details")
         self.start_label = QLabel("")
+        self.start_label.setObjectName("details")
         self.end_label = QLabel("")
+        self.end_label.setObjectName("details")
 
         self.layout.addWidget(self.filename_label)
         self.layout.addWidget(self.averaging_label)
@@ -236,12 +265,29 @@ class CompleteWidget(QWidget):
         super().__init__()
 
         self.layout = QVBoxLayout()
-        self.layout.addWidget(QLabel("Analysis Complete!"))
+
+        self.title = QLabel("Analysis Complete!")
+        self.title.setObjectName("title")
+        self.layout.addWidget(self.title)
+
+        self.details = QLabel("Output File output.csv created!")
+        self.details.setWordWrap(True)
+        self.details.setObjectName("details")
+        self.details.setFixedHeight(50)
+        self.layout.addWidget(self.details)
+
+        self.layout.insertSpacing(3, 75)
+
+        self.buttons = QHBoxLayout()
+
+        self.result = QPushButton("View Results")
+        self.buttons.addWidget(self.result)
 
         self.start_over = QPushButton("Start Over")
         self.start_over.clicked.connect(self.reset)
-        self.layout.addWidget(self.start_over)
+        self.buttons.addWidget(self.start_over)
 
+        self.layout.addLayout(self.buttons)
         self.setLayout(self.layout)
 
     def reset(self):

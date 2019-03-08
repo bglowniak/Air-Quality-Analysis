@@ -3,3 +3,4 @@ venv/
 .vscode/
 target/
 data/data_out/*
+src/main/python/__pycache__/*

@@ -6,6 +6,8 @@ from PyQt5.QtCore import QDateTime
 
 import sys
 
+from clean import process_file
+
 class AppContext(ApplicationContext):
     def run(self):
         version = self.build_settings['version']
@@ -32,8 +34,13 @@ class MainWindow(QMainWindow):
 
         self.setStyleSheet(stylesheet)
 
-    def start_analysis(self, filename, averaging_duration, time_selected, start_time, end_time):
+    def start_analysis(self, filename, filepath, averaging_duration, time_selected, start_time, end_time):
         self.master.setCurrentIndex(1)
+
+        process_file(filepath, start_time=start_time,
+                               stop_time=end_time,
+                               averaging_range=averaging_duration)
+
         self.progress_widget.begin_progress(filename, averaging_duration, start_time, end_time)
 
     def complete_analysis(self):
@@ -172,6 +179,7 @@ class MainWidget(QWidget):
         fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "", "All Files (*)")
         if fileName:
             self.file = fileName.split("/")[-1]
+            self.filepath = fileName
             label.setText(self.file)
 
     def rb_state(self, clicked):
@@ -205,7 +213,7 @@ class MainWidget(QWidget):
             start_time = None
             end_time = None
 
-        self.parentWidget().parentWidget().start_analysis(self.file, self.averaging_duration, self.time_selected, start_time, end_time)
+        self.parentWidget().parentWidget().start_analysis(self.file, self.filepath, self.averaging_duration, self.time_selected, start_time, end_time)
 
     def reset(self):
         self.file = None

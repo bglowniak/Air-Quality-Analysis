@@ -2,4 +2,4 @@ venv/
 .idea/
 .vscode/
 target/
-*/data/data_out
+data/data_out/*

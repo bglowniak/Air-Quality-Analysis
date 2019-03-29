@@ -25,9 +25,6 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
         os.makedirs(output_path)
 
     data_obj = Data_File(filepath, output_path)
-    print(data_obj.data_frame.head())
-    #TODO: move write_csv to the clean method, here now for returning the file path
-    fn = data_obj.write_csv()
     return 'statistics.csv'
 
 class Data_File():
@@ -63,7 +60,7 @@ class Data_File():
         df.to_csv(os.path.join(self.output_path, 'statistics.csv'))
 
     def write_csv(self):
-        #probably should delete this method eventually
+        #writes clean csv to output path
         fn = ''
         if self.sensor_type == Sensor.AIR_BEAM:
             fn = 'Air_Beam_Output.csv'

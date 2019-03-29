@@ -3,6 +3,7 @@ import dateutil.parser
 import pandas as pd
 import numpy as np
 from enum import Enum
+import time
 
 class Sensor(Enum):
     AIR_BEAM = 1
@@ -25,7 +26,7 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
         os.makedirs(output_path)
 
     data_obj = Data_File(filepath, output_path)
-    return 'statistics.csv'
+    return data_obj.output_fn
 
 class Data_File():
     '''Base Data File Class
@@ -35,12 +36,40 @@ class Data_File():
     TODO: remove this? @function clean: must be overwritten in subclass to clean based on object type
     TODO: @function make_pdf: 
     '''
+    def read_file(self, filepath):
+        #reads file and returns pandas dataframe
+        try:
+            if os.path.splitext(filepath)[1] == '.csv':
+                return pd.read_csv(filepath)
+            return pd.read_excel(filepath)
+        except FileNotFoundError as fnfe:
+            print(fnfe)
+        except IOError as ioe:
+            print(ioe)
+
+    def identify_file(self, data_frame):
+        #figures out file type
+        identifier = data_frame.columns[0]
+        if identifier == 'sensor:model':
+            self.file_mod = 'Air_Beam'
+            return Sensor.AIR_BEAM
+        if identifier == 'created_at':
+            self.file_mod = 'Purple_Air'
+            return Sensor.PURPLE_AIR
+        if identifier == 'Timestamp':
+            self.file_mod = 'Air_Egg'
+            return Sensor.AIR_EGG
+        return Sensor.INVALID
 
     def __init__(self, filepath, output_path):
         self.output_path = output_path
-        self.data_frame = read_file(filepath)
-        self.sensor_type = identify_file(self.data_frame)
+        self.data_frame = self.read_file(filepath)
+        self.sensor_type = self.identify_file(self.data_frame)
+        self.file_mod = self.file_mod + time.strftime("%Y%m%d-%H%M%S")
         self.clean()
+        self.store_clean_data()
+        self.gen_statistics()
+        self.visualize()
 
     def clean(self):
         if self.sensor_type == Sensor.AIR_BEAM:
@@ -51,48 +80,22 @@ class Data_File():
             self.data_frame = clean_purple_air(self.data_frame)
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
         self.data_frame = self.data_frame.sort_values(by = 'Datetime')
-        self.data_frame.apply(pd.to_numeric, errors='ignore')
-        self.write_csv()
-        self.gen_statistics()
+        self.data_frame = self.data_frame.apply(pd.to_numeric, errors='ignore')
 
     def gen_statistics(self):
         df = self.data_frame.describe()
-        df.to_csv(os.path.join(self.output_path, 'statistics.csv'))
+        fn =  self.file_mod + '_statistics.csv'
+        self.output_fn = fn
+        df.to_csv(os.path.join(self.output_path, fn))
 
-    def write_csv(self):
+    def store_clean_data(self):
         #writes clean csv to output path
-        fn = ''
-        if self.sensor_type == Sensor.AIR_BEAM:
-            fn = 'Air_Beam_Output.csv'
-        elif self.sensor_type == Sensor.PURPLE_AIR:
-            fn = 'Purple_Air_Output.csv'
-        elif self.sensor_type == Sensor.AIR_EGG:
-            fn = 'Air_Egg_Output.csv'
+        fn = self.file_mod + '_cleaned.csv'
         output_filepath = os.path.join(self.output_path, fn)
         self.data_frame.to_csv(output_filepath)
 
-
-def read_file(file_path):
-    #reads file and returns pandas dataframe
-    try:
-        if os.path.splitext(file_path)[1] == '.csv':
-            return pd.read_csv(file_path)
-        return pd.read_excel(file_path)
-    except FileNotFoundError as fnfe:
-        print(fnfe)
-    except IOError as ioe:
-        print(ioe)
-
-def identify_file(data_frame):
-    #figures out file type
-    identifier = data_frame.columns[0]
-    if identifier == 'sensor:model':
-        return Sensor.AIR_BEAM
-    if identifier == 'created_at':
-        return Sensor.PURPLE_AIR
-    if identifier == 'Timestamp':
-        return Sensor.AIR_EGG
-    return Sensor.INVALID
+    def visualize(self):
+        boxplot(self.data_frame)
 
 def clean_purple_air(data_frame):
     data_frame.columns = ['Datetime', 'entry_id', 'PM1.0', 'PM2.5', 'PM10.0', 'UptimeMinutes', 'RSSI_dbm', 'Temperature', 'Humidity', 'Pm2.5_CF_1_ug/m3']
@@ -128,6 +131,9 @@ def clean_air_beam(data_frame):
 def parse_time_string(s):
     d = dateutil.parser.parse(s)
     return d
+
+def boxplot(df):
+    pass
    
 #Below is for testing purposes only
 if __name__ == "__main__":

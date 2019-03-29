@@ -38,7 +38,8 @@ class MainWindow(QMainWindow):
         if output_path == None:
             output_path = filepath[:len(filepath) - len(filename)] + "data_out"
 
-        process_file(filepath, start_time=start_time,
+        process_file(filepath, output_path=output_path,
+                               start_time=start_time,
                                stop_time=end_time,
                                averaging_range=averaging_duration)
 

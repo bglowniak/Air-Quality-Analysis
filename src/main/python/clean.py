@@ -26,8 +26,9 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
 
     data_obj = Data_File(filepath, output_path)
     print(data_obj.data_frame.head())
-    output_filepath = data_obj.write_csv()
-    return output_filepath
+    #TODO: move write_csv to the clean method, here now for returning the file path
+    fn = data_obj.write_csv()
+    return 'statistics.csv'
 
 class Data_File():
     '''Base Data File Class
@@ -51,9 +52,15 @@ class Data_File():
             self.data_frame = clean_air_egg(self.data_frame)
         elif self.sensor_type == Sensor.PURPLE_AIR:
             self.data_frame = clean_purple_air(self.data_frame)
-
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
         self.data_frame = self.data_frame.sort_values(by = 'Datetime')
+        self.data_frame.apply(pd.to_numeric, errors='ignore')
+        self.write_csv()
+        self.gen_statistics()
+
+    def gen_statistics(self):
+        df = self.data_frame.describe()
+        df.to_csv(os.path.join(self.output_path, 'statistics.csv'))
 
     def write_csv(self):
         #probably should delete this method eventually
@@ -66,7 +73,6 @@ class Data_File():
             fn = 'Air_Egg_Output.csv'
         output_filepath = os.path.join(self.output_path, fn)
         self.data_frame.to_csv(output_filepath)
-        return output_filepath
 
 
 def read_file(file_path):

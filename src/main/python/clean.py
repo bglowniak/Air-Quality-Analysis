@@ -26,8 +26,8 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
 
     data_obj = Data_File(filepath, output_path)
     print(data_obj.data_frame.head())
-    #return the output file path
-    return
+    output_filepath = data_obj.write_csv()
+    return output_filepath
 
 class Data_File():
     '''Base Data File Class
@@ -54,6 +54,19 @@ class Data_File():
 
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
         self.data_frame = self.data_frame.sort_values(by = 'Datetime')
+
+    def write_csv(self):
+        #probably should delete this method eventually
+        fn = ''
+        if self.sensor_type == Sensor.AIR_BEAM:
+            fn = 'Air_Beam_Output.csv'
+        elif self.sensor_type == Sensor.PURPLE_AIR:
+            fn = 'Purple_Air_Output.csv'
+        elif self.sensor_type == Sensor.AIR_EGG:
+            fn = 'Air_Egg_Output.csv'
+        output_filepath = os.path.join(self.output_path, fn)
+        self.data_frame.to_csv(output_filepath)
+        return output_filepath
 
 
 def read_file(file_path):

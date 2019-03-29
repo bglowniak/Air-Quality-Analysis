@@ -21,29 +21,32 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.main_widget = MainWidget()
         self.progress_widget = ProgressWidget()
-        self.complete_widget = CompleteWidget()
 
         self.master = QStackedWidget()
         self.master.addWidget(self.main_widget)
         self.master.addWidget(self.progress_widget)
-        self.master.addWidget(self.complete_widget)
 
         self.setCentralWidget(self.master)
         self.setWindowTitle("Air Quality Analysis v" + version)
-        self.setFixedSize(500, 300)
+        self.setFixedSize(500, 350)
 
         self.setStyleSheet(stylesheet)
 
-    def start_analysis(self, filename, filepath, averaging_duration, time_selected, start_time, end_time):
+    def start_analysis(self, filename, filepath, output_path, averaging_duration, time_selected, start_time, end_time):
         self.master.setCurrentIndex(1)
+
+        if output_path == None:
+            output_path = "placeholder" # TALK TO JOEL TO FIX THIS
 
         process_file(filepath, start_time=start_time,
                                stop_time=end_time,
                                averaging_range=averaging_duration)
 
-        self.progress_widget.begin_progress(filename, averaging_duration, start_time, end_time)
+        self.progress_widget.begin_progress(filename, output_path, averaging_duration, start_time, end_time)
 
-    def complete_analysis(self):
+    def complete_analysis(self, output_path):
+        self.complete_widget = CompleteWidget(output_path)
+        self.master.addWidget(self.complete_widget)
         self.master.setCurrentIndex(2)
 
     def start_over(self):
@@ -58,11 +61,13 @@ class MainWidget(QWidget):
         self.title_label.setObjectName("title")
         self.layout.addWidget(self.title_label)
         self.file_select_layout = self.file_select_layout()
+        self.output_path_layout = self.output_path_layout()
         self.averaging_duration_layout = self.averaging_duration_layout()
         self.time_range_layout = self.time_range_layout()
         self.time_selectors = self.time_selectors()
 
         self.layout.addLayout(self.file_select_layout)
+        self.layout.addLayout(self.output_path_layout)
         self.layout.addLayout(self.averaging_duration_layout)
         self.layout.addLayout(self.time_range_layout)
         self.layout.addWidget(self.time_selectors)
@@ -81,13 +86,37 @@ class MainWidget(QWidget):
 
         self.file_name = QLabel("No File Selected")
         self.file_name.setObjectName("fileName")
+        self.file_name.setFixedWidth(200)
         button = QPushButton("Browse")
+        button.setFixedWidth(100)
         button.clicked.connect(partial(self.get_file, self.file_name))
 
         layout.addWidget(self.file_name)
         layout.addWidget(button)
 
         self.file = None
+
+        layout.setContentsMargins(6,10,6,8)
+
+        return layout
+
+    def output_path_layout(self):
+        layout = QHBoxLayout()
+        instruction = QLabel("Select Output Path:")
+        instruction.setObjectName("instruction")
+        layout.addWidget(instruction)
+
+        self.output_select = QLabel("No Path Selected")
+        self.output_select.setObjectName("fileName")
+        self.output_select.setFixedWidth(200)
+        button = QPushButton("Browse")
+        button.setFixedWidth(100)
+        button.clicked.connect(partial(self.get_output, self.output_select))
+
+        layout.addWidget(self.output_select)
+        layout.addWidget(button)
+
+        self.output_path = None
 
         layout.setContentsMargins(6,10,6,8)
 
@@ -176,11 +205,21 @@ class MainWidget(QWidget):
         return widget
 
     def get_file(self, label):
-        fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "", "All Files (*)")
+        fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "", "Data Files (*.csv *.xls *.xlsx);;All Files (*)")
         if fileName:
             self.file = fileName.split("/")[-1]
             self.filepath = fileName
             label.setText(self.file)
+
+    def get_output(self, label):
+        path = QFileDialog.getExistingDirectory(self, "Choose an Output Directory", options = QFileDialog.ShowDirsOnly)
+        if path:
+            self.output_path = path
+            split_path = path.split("/")
+            if len(split_path) >= 2:
+                label.setText(split_path[-2] + "/" + split_path[-1])
+            else:
+                label.setText(self.output_path)
 
     def rb_state(self, clicked):
         if clicked.text() == "Yes" and clicked.isChecked() == True:
@@ -201,6 +240,13 @@ class MainWidget(QWidget):
             msg.exec_()
             return
 
+        extension = self.file.split(".")[-1]
+        if not extension == "xls" and not extension == "xlsx" and not extension == "csv":
+            msg.setText("Invalid File Type")
+            msg.setInformativeText("Valid File Types Include *.xls, *.xlsx, *.csv")
+            msg.exec_()
+            return
+
         if self.time_selected:
             start_time = self.start.dateTime()
             end_time = self.end.dateTime()
@@ -213,11 +259,13 @@ class MainWidget(QWidget):
             start_time = None
             end_time = None
 
-        self.parentWidget().parentWidget().start_analysis(self.file, self.filepath, self.averaging_duration, self.time_selected, start_time, end_time)
+        self.parentWidget().parentWidget().start_analysis(self.file, self.filepath, self.output_path, self.averaging_duration, self.time_selected, start_time, end_time)
 
     def reset(self):
         self.file = None
         self.file_name.setText("No File Selected")
+        self.output_path = None
+        self.output_select.setText("No Path Selected")
         self.start.setDateTime(QDateTime.currentDateTime())
         self.end.setDateTime(QDateTime.currentDateTime())
 
@@ -250,7 +298,7 @@ class ProgressWidget(QWidget):
 
         self.setLayout(self.layout)
 
-    def begin_progress(self, filename, averaging, start, end):
+    def begin_progress(self, filename, output_path, averaging, start, end):
         self.filename_label.setText("File Name: " + filename)
         self.averaging_label.setText("Averaging Duration: " + averaging)
         if start != None and end != None:
@@ -266,10 +314,10 @@ class ProgressWidget(QWidget):
             self.completed += .00005
             self.progress.setValue(self.completed)
 
-        self.parentWidget().parentWidget().complete_analysis()
+        self.parentWidget().parentWidget().complete_analysis(output_path)
 
 class CompleteWidget(QWidget):
-    def __init__(self):
+    def __init__(self, output_path):
         super().__init__()
 
         self.layout = QVBoxLayout()
@@ -278,7 +326,7 @@ class CompleteWidget(QWidget):
         self.title.setObjectName("title")
         self.layout.addWidget(self.title)
 
-        self.details = QLabel("Output File output.csv created!")
+        self.details = QLabel("Output File output.csv created at " + output_path + "!")
         self.details.setWordWrap(True)
         self.details.setObjectName("details")
         self.details.setFixedHeight(50)

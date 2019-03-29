@@ -22,10 +22,12 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.main_widget = MainWidget()
         self.progress_widget = ProgressWidget()
+        self.complete_widget = CompleteWidget()
 
         self.master = QStackedWidget()
         self.master.addWidget(self.main_widget)
         self.master.addWidget(self.progress_widget)
+        self.master.addWidget(self.complete_widget)
 
         self.setCentralWidget(self.master)
         self.setWindowTitle("Air Quality Analysis v" + version)
@@ -50,8 +52,7 @@ class MainWindow(QMainWindow):
         self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
 
     def complete_analysis(self, output_path):
-        self.complete_widget = CompleteWidget(self.output_path, self.output_name)
-        self.master.addWidget(self.complete_widget)
+        self.master.widget(2).set_output(self.output_path, self.output_name)
         self.master.setCurrentIndex(2)
 
     def start_over(self):
@@ -322,7 +323,7 @@ class ProgressWidget(QWidget):
         self.parentWidget().parentWidget().complete_analysis(output_path)
 
 class CompleteWidget(QWidget):
-    def __init__(self, output_path, output_name):
+    def __init__(self):
         super().__init__()
 
         self.layout = QVBoxLayout()
@@ -331,7 +332,7 @@ class CompleteWidget(QWidget):
         self.title.setObjectName("title")
         self.layout.addWidget(self.title)
 
-        self.details = QLabel("Output File " + output_name + " created at " + output_path + "!")
+        self.details = QLabel()
         self.details.setWordWrap(True)
         self.details.setObjectName("details")
         self.details.setFixedHeight(50)
@@ -343,7 +344,6 @@ class CompleteWidget(QWidget):
 
         self.result = QPushButton("View Results")
         self.buttons.addWidget(self.result)
-        self.result.clicked.connect(partial(self.open_result, output_path, output_name))
 
         self.start_over = QPushButton("Start Over")
         self.start_over.clicked.connect(self.reset)
@@ -351,6 +351,10 @@ class CompleteWidget(QWidget):
 
         self.layout.addLayout(self.buttons)
         self.setLayout(self.layout)
+
+    def set_output(self, output_path, output_name):
+        self.details.setText("Output File " + output_name + " created at " + output_path + "!")
+        self.result.clicked.connect(partial(self.open_result, output_path, output_name))
 
     def reset(self):
         self.parentWidget().parentWidget().start_over()

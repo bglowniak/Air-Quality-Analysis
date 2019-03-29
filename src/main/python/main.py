@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         self.master.setCurrentIndex(1)
 
         if output_path == None:
-            output_path = "placeholder" # TALK TO JOEL TO FIX THIS
+            output_path = filepath[:len(filepath) - len(filename)] + "data_out"
 
         process_file(filepath, start_time=start_time,
                                stop_time=end_time,

@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPush
 from PyQt5.QtCore import QDateTime
 
 import sys
+from subprocess import Popen
 
 from clean import process_file
 
@@ -32,21 +33,24 @@ class MainWindow(QMainWindow):
 
         self.setStyleSheet(stylesheet)
 
-    def start_analysis(self, filename, filepath, output_path, averaging_duration, time_selected, start_time, end_time):
+    def start_analysis(self, filename, filepath, output, averaging_duration, time_selected, start_time, end_time):
         self.master.setCurrentIndex(1)
 
-        if output_path == None:
-            output_path = filepath[:len(filepath) - len(filename)] + "data_out"
+        if output == None:
+            self.output_path = filepath[:len(filepath) - len(filename)] + "data_out"
+        else:
+            self.output_path = output
 
-        process_file(filepath, output_path=output_path,
+        self.output_name = process_file(filepath, output_path=self.output_path,
                                start_time=start_time,
                                stop_time=end_time,
                                averaging_range=averaging_duration)
 
-        self.progress_widget.begin_progress(filename, output_path, averaging_duration, start_time, end_time)
+
+        self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
 
     def complete_analysis(self, output_path):
-        self.complete_widget = CompleteWidget(output_path)
+        self.complete_widget = CompleteWidget(self.output_path, self.output_name)
         self.master.addWidget(self.complete_widget)
         self.master.setCurrentIndex(2)
 
@@ -318,7 +322,7 @@ class ProgressWidget(QWidget):
         self.parentWidget().parentWidget().complete_analysis(output_path)
 
 class CompleteWidget(QWidget):
-    def __init__(self, output_path):
+    def __init__(self, output_path, output_name):
         super().__init__()
 
         self.layout = QVBoxLayout()
@@ -327,7 +331,7 @@ class CompleteWidget(QWidget):
         self.title.setObjectName("title")
         self.layout.addWidget(self.title)
 
-        self.details = QLabel("Output File output.csv created at " + output_path + "!")
+        self.details = QLabel("Output File " + output_name + " created at " + output_path + "!")
         self.details.setWordWrap(True)
         self.details.setObjectName("details")
         self.details.setFixedHeight(50)
@@ -339,6 +343,7 @@ class CompleteWidget(QWidget):
 
         self.result = QPushButton("View Results")
         self.buttons.addWidget(self.result)
+        self.result.clicked.connect(partial(self.open_result, output_path, output_name))
 
         self.start_over = QPushButton("Start Over")
         self.start_over.clicked.connect(self.reset)
@@ -349,6 +354,10 @@ class CompleteWidget(QWidget):
 
     def reset(self):
         self.parentWidget().parentWidget().start_over()
+
+    def open_result(self, path, name):
+        full_path = path + "/" + name
+        p = Popen(full_path, shell=True)
 
 if __name__ == '__main__':
     appctxt = AppContext()

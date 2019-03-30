@@ -81,8 +81,12 @@ class Data_File():
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
         self.data_frame = self.data_frame.sort_values(by = 'Datetime')
         self.data_frame = self.data_frame.apply(pd.to_numeric, errors='ignore')
+        self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(pd.to_datetime)
 
     def gen_statistics(self):
+        #calculates statistics
+        #writes outputs to file
+        #TODO: in finished product, this won't write results, only calculate stats and pass to pdf gen
         df = self.data_frame.describe()
         fn =  self.file_mod + '_statistics.csv'
         self.output_fn = fn

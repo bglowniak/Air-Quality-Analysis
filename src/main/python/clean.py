@@ -75,7 +75,7 @@ class Data_File():
         if identifier == 'Timestamp':
             self.file_mod = 'Air_Egg'
             return Sensor.AIR_EGG
-        return Sensor.INVALID
+        raise ValueError('Invalid input file type')
 
     def __init__(self, filepath, output_path):
         self.output_path = output_path

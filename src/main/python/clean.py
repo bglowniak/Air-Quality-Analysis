@@ -28,7 +28,7 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
 
     #a little hacky but does the trick for now
     try:
-        data_obj = Data_File(filepath, output_path)
+        data_obj = Data_File(filepath, output_path, start_time, stop_time)
     except IOError as e:
         print("IO error!")
         return e
@@ -151,11 +151,12 @@ def clean_air_beam(data_frame):
     return data_frame
 
 def filter_on_time(df, start_time=None, stop_time=None):
-    if start_time is not None and stop_time is not None:
+    #currently broken due to timezone naiive and aware datetime objects
+    '''if start_time is not None and stop_time is not None:
         #filter on both
-        after_start = df['Datetime'] >= start_time
-        before_end = df['Datetime'] <= stop_time
-        return df[after_start and before_end]
+        after_start = df['Datetime'] >= start_time.toPyDateTime()
+        before_end = df['Datetime'] <= stop_time.toPyDateTime()
+        return df[after_start and before_end]'''
     return df
 
 def parse_time_string(s):

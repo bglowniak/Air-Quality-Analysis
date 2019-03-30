@@ -77,17 +77,17 @@ class Data_File():
             return Sensor.AIR_EGG
         raise ValueError('Invalid input file type')
 
-    def __init__(self, filepath, output_path):
+    def __init__(self, filepath, output_path, start_time=None, stop_time=None):
         self.output_path = output_path
         self.data_frame = self.read_file(filepath)
         self.sensor_type = self.identify_file(self.data_frame)
         self.file_mod = self.file_mod + time.strftime("%Y%m%d-%H%M%S")
-        self.clean()
+        self.clean(start_time, stop_time)
         self.store_clean_data()
         self.gen_statistics()
         self.visualize()
 
-    def clean(self):
+    def clean(self, start_time, stop_time):
         if self.sensor_type == Sensor.AIR_BEAM:
             self.data_frame = clean_air_beam(self.data_frame)
         elif self.sensor_type == Sensor.AIR_EGG:
@@ -98,6 +98,7 @@ class Data_File():
         self.data_frame = self.data_frame.sort_values(by = 'Datetime')
         self.data_frame = self.data_frame.apply(pd.to_numeric, errors='ignore')
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(pd.to_datetime)
+        self.data_frame = filter_on_time(self.data_frame, start_time, stop_time)
 
     def gen_statistics(self):
         #calculates statistics
@@ -116,6 +117,7 @@ class Data_File():
 
     def visualize(self):
         boxplot(self.data_frame, self.output_path, self.file_mod)
+        threshold_graph(self.data_frame, self.output_path, self.file_mod)
 
 def clean_purple_air(data_frame):
     data_frame.columns = ['Datetime', 'entry_id', 'PM1.0', 'PM2.5', 'PM10.0', 'UptimeMinutes', 'RSSI_dbm', 'Temperature', 'Humidity', 'Pm2.5_CF_1_ug/m3']
@@ -148,6 +150,14 @@ def clean_air_beam(data_frame):
     data_frame = beam
     return data_frame
 
+def filter_on_time(df, start_time=None, stop_time=None):
+    if start_time is not None and stop_time is not None:
+        #filter on both
+        after_start = df['Datetime'] >= start_time
+        before_end = df['Datetime'] <= stop_time
+        return df[after_start and before_end]
+    return df
+
 def parse_time_string(s):
     d = dateutil.parser.parse(s)
     return d
@@ -165,7 +175,25 @@ def boxplot(df, output_path, file_mod):
     dat = [df['PM10.0'].dropna()]
     ax4.boxplot(dat, labels = ['PM 10.0'], vert = True)
     fig.subplots_adjust(wspace=0.5)
-    fig.savefig(os.path.join(output_path, file_mod + '_boxplot.png'))
+    outpath = os.path.join(output_path, file_mod + '_boxplot.png')
+    fig.savefig(outpath)
+    return outpath
+
+def threshold_graph(df, output_path, file_mod):
+    plt.close()
+    f, axarr = plt.subplots(2, figsize=[10,8], sharex = True)
+    axarr[0].plot(df['Datetime'], df['PM2.5'], label='PM 2.5')
+    axarr[0].plot(df['Datetime'], df['PM10.0'], label='PM 10.0')
+    axarr[0].hlines(25, df['Datetime'][0], df['Datetime'].tail(1), color='r', linestyles='dashed', label='Threshold')
+    axarr[0].legend()
+    axarr[0].set_title('Particulate Matter and Humidity')
+    axarr[1].plot(df['Datetime'], df['Humidity'], label='Humidity (percent)')
+    #plt.xticks([df['Datetime'][0], df['Datetime'][5000], df['Datetime'][10000]])
+    axarr[1].legend()
+    fn = file_mod + '_threshold_graph.png'
+    outpath = os.path.join(output_path, fn)
+    plt.savefig(outpath, dpi='figure')
+    return outpath
    
 #Below is for testing purposes only
 if __name__ == "__main__":

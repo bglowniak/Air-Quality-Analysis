@@ -2,6 +2,7 @@ import os
 import dateutil.parser
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from enum import Enum
 import time
 
@@ -25,15 +26,30 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    data_obj = Data_File(filepath, output_path)
+    #a little hacky but does the trick for now
+    try:
+        data_obj = Data_File(filepath, output_path)
+    except IOError as e:
+        print("IO error!")
+        return e
+    except Exception as e:
+        print("Unkown Error!!")
+        print(e)
+        return e
+    
     return data_obj.output_fn
 
 class Data_File():
-    '''Base Data File Class
+    '''Data File Class - handles file processing automatically upon creation
 
-    @param data_frame: pandas data frame object to set as instance data for this data file
+    @param filepath: the path to the input file
+    @param outupt_path: the folder path for outputting files
+
     @attribute sensor_type: Sensor enum value, calculated from identify_file() function
-    TODO: remove this? @function clean: must be overwritten in subclass to clean based on object type
+    @attribute data_frame: data stored in a pandas DataFrame object
+    @attribute output_path: output folder path
+    @attribute file_mod: the file name addition including timestamp and sensor type
+
     TODO: @function make_pdf: 
     '''
     def read_file(self, filepath):
@@ -99,7 +115,7 @@ class Data_File():
         self.data_frame.to_csv(output_filepath)
 
     def visualize(self):
-        boxplot(self.data_frame)
+        boxplot(self.data_frame, self.output_path, self.file_mod)
 
 def clean_purple_air(data_frame):
     data_frame.columns = ['Datetime', 'entry_id', 'PM1.0', 'PM2.5', 'PM10.0', 'UptimeMinutes', 'RSSI_dbm', 'Temperature', 'Humidity', 'Pm2.5_CF_1_ug/m3']
@@ -136,8 +152,20 @@ def parse_time_string(s):
     d = dateutil.parser.parse(s)
     return d
 
-def boxplot(df):
-    pass
+def boxplot(df, output_path, file_mod):
+    #simple version, only makes the 4 boxplots every dataset has in common
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4)
+    #fig.suptitle('Air Beam', fontsize=20)
+    dat = [df['Temperature'].dropna()]
+    ax1.boxplot(dat, labels = ['Temperature'], vert = True)
+    dat = [df['Humidity'].dropna()]
+    ax2.boxplot(dat, labels = ['Humidity'], vert = True)
+    dat = [df['PM2.5'].dropna()]
+    ax3.boxplot(dat, labels = ['PM 2.5'], vert = True)
+    dat = [df['PM10.0'].dropna()]
+    ax4.boxplot(dat, labels = ['PM 10.0'], vert = True)
+    fig.subplots_adjust(wspace=0.5)
+    fig.savefig(os.path.join(output_path, file_mod + '_boxplot.png'))
    
 #Below is for testing purposes only
 if __name__ == "__main__":

@@ -42,14 +42,15 @@ class MainWindow(QMainWindow):
             self.output_path = filepath[:len(filepath) - len(filename)] + "data_out"
         else:
             self.output_path = output
-
-        self.output_name = process_file(filepath, output_path=self.output_path,
+        try:
+            self.output_name = process_file(filepath, output_path=self.output_path,
                                start_time=start_time,
                                stop_time=end_time,
                                averaging_range=averaging_duration)
-
-
-        self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
+            self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
+        except:
+            print("Error!")
+            self.start_over()
 
     def complete_analysis(self, output_path):
         self.master.widget(2).set_output(self.output_path, self.output_name)
@@ -86,7 +87,7 @@ class MainWidget(QWidget):
 
     def file_select_layout(self):
         layout = QHBoxLayout()
-        instruction = QLabel("Select Date File:")
+        instruction = QLabel("Select Data File:")
         instruction.setObjectName("instruction")
         layout.addWidget(instruction)
 
@@ -332,11 +333,18 @@ class CompleteWidget(QWidget):
         self.title.setObjectName("title")
         self.layout.addWidget(self.title)
 
-        self.details = QLabel()
-        self.details.setWordWrap(True)
-        self.details.setObjectName("details")
-        self.details.setFixedHeight(50)
-        self.layout.addWidget(self.details)
+        self.file_name = QLabel()
+        self.file_name.setWordWrap(True)
+        self.file_name.setObjectName("details")
+        self.file_name.setFixedHeight(50)
+
+        self.filepath = QLabel()
+        self.filepath.setWordWrap(True)
+        self.filepath.setObjectName("details")
+        self.filepath.setFixedHeight(50)
+
+        self.layout.addWidget(self.file_name)
+        self.layout.addWidget(self.filepath)
 
         self.layout.insertSpacing(3, 75)
 
@@ -353,7 +361,8 @@ class CompleteWidget(QWidget):
         self.setLayout(self.layout)
 
     def set_output(self, output_path, output_name):
-        self.details.setText("Output File " + output_name + " created at " + output_path + "!")
+        self.file_name.setText(output_name + " created!")
+        self.filepath.setText("Output Path: " + output_path)
         self.result.clicked.connect(partial(self.open_result, output_path, output_name))
 
     def reset(self):

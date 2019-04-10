@@ -48,6 +48,7 @@ class Data_File():
     @attribute sensor_type: Sensor enum value, calculated from identify_file() function
     @attribute data_frame: data stored in a pandas DataFrame object
     @attribute output_path: output folder path
+    @attribute output_fn: output file name
     @attribute file_mod: the file name addition including timestamp and sensor type
 
     TODO: @function make_pdf: 
@@ -104,11 +105,8 @@ class Data_File():
         #calculates statistics
         #writes outputs to file
         #TODO: in finished product, this won't write results, only calculate stats and pass to pdf gen
-        df = self.data_frame.describe()
-        fn =  self.file_mod + '_statistics.csv'
-        self.output_fn = fn
-        df.to_csv(os.path.join(self.output_path, fn))
-
+        self.output_fn = basic_stats(self.data_frame, self.output_path, self.file_mod)
+        
     def store_clean_data(self):
         #writes clean csv to output path
         fn = self.file_mod + '_cleaned.csv'
@@ -162,6 +160,12 @@ def filter_on_time(df, start_time=None, stop_time=None):
 def parse_time_string(s):
     d = dateutil.parser.parse(s)
     return d
+
+def basic_stats(df, output_path, file_mod):
+    df = df.describe()
+    fn =  file_mod + '_statistics.csv'
+    df.to_csv(os.path.join(output_path, fn))
+    return fn
 
 def boxplot(df, output_path, file_mod):
     #simple version, only makes the 4 boxplots every dataset has in common

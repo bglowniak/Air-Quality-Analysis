@@ -1,21 +1,26 @@
 from fbs_runtime.application_context import ApplicationContext
 from functools import partial
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, \
+    QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox
 
 from PyQt5.QtCore import QDateTime
 
 import sys
+import os
 from subprocess import Popen
 
-from clean import DataFileProcessor
+from clean import DataFileProcessor, OutputFileTypes
+
 
 class AppContext(ApplicationContext):
     def run(self):
         version = self.build_settings['version']
-        stylesheet = self.get_resource('style.qss')
-        main_screen = MainWindow(version, open(stylesheet).read())
+        with open(self.get_resource('style.qss')) as f:
+            stylesheet = f.read()
+        main_screen = MainWindow(version, stylesheet)
         main_screen.show()
         return self.app.exec_()
+
 
 class MainWindow(QMainWindow):
     def __init__(self, version, stylesheet):
@@ -31,43 +36,33 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.master)
         self.setWindowTitle("Air Quality Analysis v" + version)
-        self.setFixedSize(500, 350)
+        self.setFixedSize(1000, 700)
 
         self.setStyleSheet(stylesheet)
 
-    def start_analysis(self, filename, filepath, output, averaging_duration, time_selected, start_time, end_time):
+    def start_analysis(self, filename, filepath, output, averaging_duration, start_time, end_time):
         self.master.setCurrentIndex(1)
 
         if output == None:
             self.output_path = filepath[:len(filepath) - len(filename)] + "data_out"
         else:
             self.output_path = output
+
         try:
-            data_file_processor = DataFileProcessor(
-                filepath=filepath,
-                output_path_enclosing_folder=self.output_path,
-                start_time=None,
-                stop_time=None,
-                averaging_range=None
-            )
-
-            try:
-                data_file_processor.process()
-            except Exception as e:
-                raise
-
-            self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
+            self.progress_widget.begin_progress(filename, filepath, self.output_path, averaging_duration, start_time, end_time)
         except:
             print("Error!")
+            raise
             self.start_over()
 
-    def complete_analysis(self, output_path):
-        self.master.widget(2).set_output(self.output_path, self.output_name)
+    def complete_analysis(self, output_path, output_pdf_file_name):
+        self.master.widget(2).set_output(output_path, output_pdf_file_name)
         self.master.setCurrentIndex(2)
 
     def start_over(self):
         self.master.widget(0).reset()
         self.master.setCurrentIndex(0)
+
 
 class MainWidget(QWidget):
     def __init__(self):
@@ -112,7 +107,7 @@ class MainWidget(QWidget):
 
         self.file = None
 
-        layout.setContentsMargins(6,10,6,8)
+        layout.setContentsMargins(6, 10, 6, 8)
 
         return layout
 
@@ -134,7 +129,7 @@ class MainWidget(QWidget):
 
         self.output_path = None
 
-        layout.setContentsMargins(6,10,6,8)
+        layout.setContentsMargins(6, 10, 6, 8)
 
         return layout
 
@@ -145,7 +140,7 @@ class MainWidget(QWidget):
         layout.addWidget(instruction)
 
         comboBox = QComboBox(self)
-        self.averaging_duration = "1 Minute" # default
+        self.averaging_duration = "1 Minute"  # default
         comboBox.addItem("1 Minute")
         comboBox.addItem("5 Minutes")
         comboBox.addItem("1 Hour")
@@ -158,7 +153,7 @@ class MainWidget(QWidget):
 
         layout.addWidget(comboBox)
 
-        layout.setContentsMargins(6,8,6,8)
+        layout.setContentsMargins(6, 8, 6, 8)
 
         return layout
 
@@ -183,7 +178,7 @@ class MainWidget(QWidget):
 
         self.time_selected = False
 
-        layout.setContentsMargins(6,8,6,8)
+        layout.setContentsMargins(6, 8, 6, 8)
         layout.insertSpacing(1, 85)
         layout.insertSpacing(3, 80)
 
@@ -216,19 +211,20 @@ class MainWidget(QWidget):
         widget.setFixedHeight(50)
         widget.setEnabled(False)
 
-        layout.setContentsMargins(6,8,6,10)
+        layout.setContentsMargins(6, 8, 6, 10)
 
         return widget
 
     def get_file(self, label):
-        fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "", "Data Files (*.csv *.xls *.xlsx);;All Files (*)")
+        fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "",
+                                                  "Data Files (*.csv *.xls *.xlsx);;All Files (*)")
         if fileName:
             self.file = fileName.split("/")[-1]
             self.filepath = fileName
             label.setText(self.file)
 
     def get_output(self, label):
-        path = QFileDialog.getExistingDirectory(self, "Choose an Output Directory", options = QFileDialog.ShowDirsOnly)
+        path = QFileDialog.getExistingDirectory(self, "Choose an Output Directory", options=QFileDialog.ShowDirsOnly)
         if path:
             self.output_path = path
             split_path = path.split("/")
@@ -275,7 +271,14 @@ class MainWidget(QWidget):
             start_time = None
             end_time = None
 
-        self.parentWidget().parentWidget().start_analysis(self.file, self.filepath, self.output_path, self.averaging_duration, self.time_selected, start_time, end_time)
+        self.parentWidget().parentWidget().start_analysis(
+            self.file,
+            self.filepath,
+            self.output_path,
+            self.averaging_duration,
+            start_time,
+            end_time,
+        )
 
     def reset(self):
         self.file = None
@@ -284,6 +287,7 @@ class MainWidget(QWidget):
         self.output_select.setText("No Path Selected")
         self.start.setDateTime(QDateTime.currentDateTime())
         self.end.setDateTime(QDateTime.currentDateTime())
+
 
 class ProgressWidget(QWidget):
     def __init__(self):
@@ -314,7 +318,7 @@ class ProgressWidget(QWidget):
 
         self.setLayout(self.layout)
 
-    def begin_progress(self, filename, output_path, averaging, start, end):
+    def begin_progress(self, filename, filepath, output_path, averaging, start, end):
         self.filename_label.setText("File Name: " + filename)
         self.averaging_label.setText("Averaging Duration: " + averaging)
         if start != None and end != None:
@@ -324,13 +328,29 @@ class ProgressWidget(QWidget):
             self.start_label.setText("Start Time: N/A")
             self.end_label.setText("End Time: N/A")
 
-        self.completed = 0
 
-        while self.completed < 100:
-            self.completed += .00005
-            self.progress.setValue(self.completed)
+        data_file_processor = DataFileProcessor(
+            filepath=filepath,
+            output_path_enclosing_folder=output_path,
+            start_time=start,
+            stop_time=end,
+            averaging_range=averaging,
+        )
 
-        self.parentWidget().parentWidget().complete_analysis(output_path)
+        try:
+
+            self.completed = 0
+            for update in data_file_processor.process():
+                self.completed = update.percentage
+                self.progress.setValue(self.completed)
+
+        except Exception as e:
+            raise
+
+        self.parentWidget().parentWidget().complete_analysis(
+            output_path,
+            output_pdf_file_name=data_file_processor.output_file_paths[OutputFileTypes.STATISTICS_BASIC])
+
 
 class CompleteWidget(QWidget):
     def __init__(self):
@@ -369,17 +389,18 @@ class CompleteWidget(QWidget):
         self.layout.addLayout(self.buttons)
         self.setLayout(self.layout)
 
-    def set_output(self, output_path, output_name):
-        self.file_name.setText(output_name + " created!")
+    def set_output(self, output_path, output_pdf_file_name):
+        self.file_name.setText(output_pdf_file_name + " created!")
         self.filepath.setText("Output Path: " + output_path)
-        self.result.clicked.connect(partial(self.open_result, output_path, output_name))
+        self.result.clicked.connect(partial(self.open_result, output_path, output_pdf_file_name))
 
     def reset(self):
         self.parentWidget().parentWidget().start_over()
 
     def open_result(self, path, name):
-        full_path = path + "/" + name
+        full_path = os.path.join(path, name)
         p = Popen(full_path, shell=True)
+
 
 if __name__ == '__main__':
     appctxt = AppContext()

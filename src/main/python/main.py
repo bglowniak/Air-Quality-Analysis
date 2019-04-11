@@ -53,15 +53,8 @@ class MainWindow(QMainWindow):
 
             try:
                 data_file_processor.process()
-            except IOError as e:
-                print("IO error!")
-                raise
             except Exception as e:
-                print("Unkown Error!!")
-                print(e)
                 raise
-
-            data_file_processor.output_file_path
 
             self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
         except:

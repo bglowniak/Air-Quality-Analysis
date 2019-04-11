@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.master)
         self.setWindowTitle("Air Quality Analysis v" + version)
-        self.setFixedSize(1000, 700)
+        self.setFixedSize(500, 350)
 
         self.setStyleSheet(stylesheet)
 

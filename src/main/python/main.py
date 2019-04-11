@@ -345,7 +345,19 @@ class ProgressWidget(QWidget):
                 self.progress.setValue(self.completed)
 
         except Exception as e:
-            raise
+
+            # Display the exception
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setWindowTitle("Data Analysis Error")
+            msg.setText('An exception was encountered when running data analysis.')
+            msg.setInformativeText(str(e))
+            msg.exec_()
+
+            # Go back to the start screen
+            self.parentWidget().parentWidget().start_over()
+            return
 
         self.parentWidget().parentWidget().complete_analysis(
             output_path,

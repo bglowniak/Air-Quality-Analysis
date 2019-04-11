@@ -1,10 +1,17 @@
-from fpdf import FPDF
+from fpdf import FPDF, HTMLMixin
 import os
 
 
-class ReportPDF(FPDF):
+FONT_FAMILY = 'Times'
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+class ReportPDF(FPDF, HTMLMixin):
     def header(self):
         self.set_font('Times', 'B', 15)  # Times New Roman, Bold, 15
+
+        self.cell(w=10)
+        self.image(os.path.join(BASE_DIR, 'resources', 'base', 'image.png'))
 
         # Move to the right, and print title
         self.cell(w=70)

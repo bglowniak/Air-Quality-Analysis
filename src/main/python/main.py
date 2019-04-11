@@ -7,7 +7,7 @@ from PyQt5.QtCore import QDateTime
 import sys
 from subprocess import Popen
 
-from clean import process_file
+from clean import DataFileProcessor
 
 class AppContext(ApplicationContext):
     def run(self):
@@ -43,10 +43,26 @@ class MainWindow(QMainWindow):
         else:
             self.output_path = output
         try:
-            self.output_name = process_file(filepath, output_path=self.output_path,
-                               start_time=start_time,
-                               stop_time=end_time,
-                               averaging_range=averaging_duration)
+            data_file_processor = DataFileProcessor(
+                filepath=filepath,
+                output_path_enclosing_folder=self.output_path,
+                start_time=None,
+                stop_time=None,
+                averaging_range=None
+            )
+
+            try:
+                data_file_processor.process()
+            except IOError as e:
+                print("IO error!")
+                raise
+            except Exception as e:
+                print("Unkown Error!!")
+                print(e)
+                raise
+
+            data_file_processor.output_file_path
+
             self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
         except:
             print("Error!")

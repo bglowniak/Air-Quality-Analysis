@@ -19,20 +19,11 @@ class OutputFileTypes(Enum):
     VISUALIZATION_THRESHOLD_GRAPH = 'visualization_threshold_graph'
     STATISTICS_BASIC = 'statistics_basic'
 
-    
-class ProgressUpdateManager(object):
-    def __init__(self):
-        self.current_update_number = 0
-        
-    def next(self, *args):
-        self.current_update_number += 1
-        return self.ProgressUpdate(self.current_update_number, *args)
-    
-    class ProgressUpdate(object):
-        def __init__(self, update_number, percentage, message):
-            self.update_number = update_number
-            self.percentage = percentage
-            self.message = message
+
+class ProgressUpdate(object):
+    def __init__(self, percentage, message):
+        self.percentage = percentage
+        self.message = message
 
 
 class DataFileProcessor(object):
@@ -63,8 +54,6 @@ class DataFileProcessor(object):
         self.visualization_figures = {}
         self.statistics_data_frame = None
         self.output_file_paths = {}
-        
-        self.progress_update_manager = ProgressUpdateManager()
 
     @property
     def _base_output_folder_dir(self):
@@ -86,7 +75,7 @@ class DataFileProcessor(object):
         else:
             self.data_frame = pd.read_excel(self.data_file_path)
 
-        yield self.progress_update_manager.next(10, 'Read data frame from %s file.' % ('CSV' if file_is_csv else 'Excel'))
+        yield ProgressUpdate(10, 'Read data frame from %s file.' % ('CSV' if file_is_csv else 'Excel'))
 
         identifier = self.data_frame.columns[0]
         if identifier == 'sensor:model':
@@ -98,7 +87,7 @@ class DataFileProcessor(object):
         else:
             raise ValueError('Invalid input file type. Identifier is unknown: %s' % identifier)
 
-        yield self.progress_update_manager.next(20, 'Determined sensor type as %s' % self.sensor_type)
+        yield ProgressUpdate(20, 'Determined sensor type as %s' % self.sensor_type)
 
         # Get data frame
         if self.sensor_type == SensorType.AIR_BEAM:
@@ -108,7 +97,7 @@ class DataFileProcessor(object):
         elif self.sensor_type == SensorType.PURPLE_AIR:
             self._clean_purple_air()
 
-        yield self.progress_update_manager.next(30, 'Cleaned data')
+        yield ProgressUpdate(30, 'Cleaned data')
 
         # Format the data frame accordingly
         progress_updates_required_for_parsing_datetime_values = 10
@@ -119,19 +108,19 @@ class DataFileProcessor(object):
                 out_of_hundred = (progress_updates_required_for_parsing_datetime_values * i / int(len(self.data_frame['Datetime']) / progress_updates_required_for_parsing_datetime_values))
                 percentage = int((50 - 30) * (out_of_hundred / 100) + 30)
                 message = 'Parsed %d percent of datetime values' % percentage
-                yield self.progress_update_manager.next(percentage, message)
+                yield ProgressUpdate(percentage, message)
 
             self.data_frame['Datetime'][i] = dateutil.parser.parse(datetime_str)
 
-        yield self.progress_update_manager.next(50, 'Parsed date time values')
+        yield ProgressUpdate(50, 'Parsed date time values')
         self.data_frame = self.data_frame.sort_values(by='Datetime')
-        yield self.progress_update_manager.next(53, 'Sorted data frame by Datetime field')
+        yield ProgressUpdate(53, 'Sorted data frame by Datetime field')
         self.data_frame = self.data_frame.apply(pd.to_numeric, errors='ignore')
-        yield self.progress_update_manager.next(56, 'Converted data frame to numeric values')
+        yield ProgressUpdate(56, 'Converted data frame to numeric values')
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(pd.to_datetime)
-        yield self.progress_update_manager.next(58, 'Converted date time values to Python datetime objects')
+        yield ProgressUpdate(58, 'Converted date time values to Python datetime objects')
         self.data_frame = filter_on_time(self.data_frame, self.start_time, self.stop_time)
-        yield self.progress_update_manager.next(60, 'Filtered data frame on provided start and stop times')
+        yield ProgressUpdate(60, 'Filtered data frame on provided start and stop times')
 
         # Generate statistics
         self.output_file_paths[OutputFileTypes.STATISTICS_BASIC] = os.path.join(
@@ -141,7 +130,7 @@ class DataFileProcessor(object):
         self.data_frame.describe() \
             .to_csv(self.output_file_paths[OutputFileTypes.STATISTICS_BASIC])
 
-        yield self.progress_update_manager.next(70, 'Generated statistics')
+        yield ProgressUpdate(70, 'Generated statistics')
 
         # Generate visualizations
 
@@ -166,7 +155,7 @@ class DataFileProcessor(object):
         )
         fig.savefig(self.output_file_paths[OutputFileTypes.VISUALIZATION_BOXPLOT])
 
-        yield self.progress_update_manager.next(80, 'Saved box plot')
+        yield ProgressUpdate(80, 'Saved box plot')
 
         # Threshold Graph
 
@@ -187,9 +176,9 @@ class DataFileProcessor(object):
         )
         fig.savefig(self.output_file_paths[OutputFileTypes.VISUALIZATION_THRESHOLD_GRAPH])
 
-        yield self.progress_update_manager.next(90, 'Saved threshold graph')
+        yield ProgressUpdate(90, 'Saved threshold graph')
 
-        yield self.progress_update_manager.next(100, 'Generated PDF')
+        yield ProgressUpdate(100, 'Generated PDF')
 
     def _clean_purple_air(self):
         self.data_frame.columns = [

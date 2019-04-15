@@ -99,6 +99,7 @@ class Data_File():
         self.data_frame = self.data_frame.sort_values(by = 'Datetime')
         self.data_frame = self.data_frame.apply(pd.to_numeric, errors='ignore')
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(pd.to_datetime)
+        self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(lambda x: x.replace(tzinfo=None))
         self.data_frame = filter_on_time(self.data_frame, start_time, stop_time)
 
     def gen_statistics(self):
@@ -150,11 +151,11 @@ def clean_air_beam(data_frame):
 
 def filter_on_time(df, start_time=None, stop_time=None):
     #currently broken due to timezone naiive and aware datetime objects
-    '''if start_time is not None and stop_time is not None:
+    if start_time is not None and stop_time is not None:
         #filter on both
         after_start = df['Datetime'] >= start_time.toPyDateTime()
         before_end = df['Datetime'] <= stop_time.toPyDateTime()
-        return df[after_start and before_end]'''
+        return df[after_start & before_end].reset_index(drop=True)
     return df
 
 def parse_time_string(s):

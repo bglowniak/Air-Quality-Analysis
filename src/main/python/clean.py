@@ -30,7 +30,7 @@ class DataFileProcessor(object):
     '''Data File Class - handles file processing automatically upon creation
 
     @param filepath: the path to the input file
-    @param outupt_path: the folder path for outputting files
+    @param output_path_enclosing_folder: the folder path for outputting files
 
     @attribute sensor_type: Sensor enum value, calculated from identify_file() function
     @attribute data_frame: data stored in a pandas DataFrame object
@@ -41,7 +41,8 @@ class DataFileProcessor(object):
     TODO: @function make_pdf: 
     '''
 
-    def __init__(self, filepath, output_path_enclosing_folder, start_time=None, stop_time=None, averaging_range=None):
+    def __init__(self, filepath, output_path_enclosing_folder,
+                 start_time=None, stop_time=None, averaging_range=None):
         # Assign instance variables
         self.data_file_path = filepath
         self.output_path_enclosing_folder = output_path_enclosing_folder

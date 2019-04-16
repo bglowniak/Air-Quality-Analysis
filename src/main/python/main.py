@@ -1,7 +1,9 @@
 from fbs_runtime.application_context import ApplicationContext
 from functools import partial
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, \
-    QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox
+from PyQt5.QtWidgets import (
+    QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget,
+    QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget,
+    QProgressBar, QMessageBox)
 
 from PyQt5.QtCore import QDateTime
 
@@ -52,7 +54,6 @@ class MainWindow(QMainWindow):
             self.progress_widget.begin_progress(filename, filepath, self.output_path, averaging_duration, start_time, end_time)
         except:
             print("Error!")
-            raise
             self.start_over()
 
     def complete_analysis(self, output_path, output_pdf_file_name):
@@ -341,6 +342,7 @@ class ProgressWidget(QWidget):
 
             self.completed = 0
             for update in data_file_processor.process():
+                print('%d%%: %s' % (update.percentage, update.message))
                 self.completed = update.percentage
                 self.progress.setValue(self.completed)
 

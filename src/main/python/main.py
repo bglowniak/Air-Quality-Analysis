@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
 
         try:
             self.progress_widget.begin_progress(filename, filepath, self.output_path, averaging_duration, start_time, end_time)
-        except:
+        except Exception as e:
             print("Error!")
             self.start_over()
 
@@ -329,8 +329,10 @@ class ProgressWidget(QWidget):
             self.start_label.setText("Start Time: N/A")
             self.end_label.setText("End Time: N/A")
 
-
-        data_file_processor = DataFileProcessor(
+        print('here')
+        global appctxt
+        self.data_file_processor = DataFileProcessor(
+            app=appctxt.app,
             filepath=filepath,
             output_path_enclosing_folder=output_path,
             start_time=start,
@@ -338,32 +340,34 @@ class ProgressWidget(QWidget):
             averaging_range=averaging,
         )
 
-        try:
+        self.data_file_processor.update_signal.connect(self.handle_update)
+        self.data_file_processor.finished.connect(self.handle_completed)
+        self.data_file_processor.start()
 
-            self.completed = 0
-            for update in data_file_processor.process():
-                print('%d%%: %s' % (update.percentage, update.message))
-                self.completed = update.percentage
-                self.progress.setValue(self.completed)
+        #
+        # except Exception as e:
+        #
+        #     # Display the exception
+        #     msg = QMessageBox()
+        #     msg.setIcon(QMessageBox.Warning)
+        #     msg.setStandardButtons(QMessageBox.Ok)
+        #     msg.setWindowTitle("Data Analysis Error")
+        #     msg.setText('An exception was encountered when running data analysis.')
+        #     msg.setInformativeText(str(e))
+        #     msg.exec_()
+        #
+        #     # Go back to the start screen
+        #     self.parentWidget().parentWidget().start_over()
+        #     return
 
-        except Exception as e:
+    def handle_update(self, percentage, message):
+        print(percentage, message)
+        self.progress.setValue(percentage)
 
-            # Display the exception
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setStandardButtons(QMessageBox.Ok)
-            msg.setWindowTitle("Data Analysis Error")
-            msg.setText('An exception was encountered when running data analysis.')
-            msg.setInformativeText(str(e))
-            msg.exec_()
-
-            # Go back to the start screen
-            self.parentWidget().parentWidget().start_over()
-            return
-
+    def handle_completed(self):
         self.parentWidget().parentWidget().complete_analysis(
-            output_path,
-            output_pdf_file_name=data_file_processor.output_file_paths[OutputFileTypes.STATISTICS_BASIC])
+            self.data_file_processor.output_file_paths,
+            output_pdf_file_name=self.data_file_processor.output_file_paths[OutputFileTypes.STATISTICS_BASIC])
 
 
 class CompleteWidget(QWidget):
@@ -417,6 +421,7 @@ class CompleteWidget(QWidget):
 
 
 if __name__ == '__main__':
+    global appctx
     appctxt = AppContext()
     exit_code = appctxt.run()
     sys.exit(exit_code)

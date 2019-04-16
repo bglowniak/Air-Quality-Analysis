@@ -109,25 +109,9 @@ class DataFileProcessor(QtCore.QThread):
 
         self.update_signal.emit(30, 'Cleaned data')
 
-        # Format the data frame accordingly
-        progress_updates_required_for_parsing_datetime_values = 10
-
-        for i, datetime_str in enumerate(self.data_frame['Datetime']):
-
-            if i % int(len(self.data_frame[
-                               'Datetime']) / progress_updates_required_for_parsing_datetime_values) == 0:
-                out_of_hundred = (
-                            progress_updates_required_for_parsing_datetime_values * i / int(
-                        len(self.data_frame[
-                                'Datetime']) / progress_updates_required_for_parsing_datetime_values))
-                percentage = int((50 - 30) * (out_of_hundred / 100) + 30)
-                message = 'Parsed %d percent of datetime values' % percentage
-                self.update_signal.emit(percentage, message)
-
-            self.data_frame['Datetime'][i] = dateutil.parser.parse(datetime_str)
-
-        self.update_signal.emit(50, 'Parsed date time values')
+        self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(dateutil.parser.parse)
         self.data_frame = self.data_frame.sort_values(by='Datetime')
+        self.update_signal.emit(50, 'Parsed date time values')
 
         self.update_signal.emit(53, 'Sorted data frame by Datetime field')
         self.data_frame = self.data_frame.apply(pd.to_numeric, errors='ignore')

@@ -366,7 +366,7 @@ class ProgressWidget(QWidget):
 
     def handle_completed(self):
         self.parentWidget().parentWidget().complete_analysis(
-            self.data_file_processor.output_file_paths,
+            self.data_file_processor._base_output_folder_dir,
             output_pdf_file_name=self.data_file_processor.output_file_paths[OutputFileTypes.STATISTICS_BASIC])
 
 

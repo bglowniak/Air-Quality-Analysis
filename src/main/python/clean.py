@@ -118,10 +118,16 @@ class DataFileProcessor(QtCore.QThread):
         self.update_signal.emit(56, 'Converted data frame to numeric values')
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(
             pd.to_datetime)
+        self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(lambda x: x.replace(tzinfo=None))
         self.update_signal.emit(58,
                              'Converted date time values to Python datetime objects')
-        self.data_frame = filter_on_time(self.data_frame, self.start_time,
-                                         self.stop_time)
+
+        if self.start_time is not None and self.stop_time is not None:
+            # filter on both
+            after_start = self.data_frame['Datetime'] >= self.start_time.toPyDateTime()
+            before_end = self.data_frame['Datetime'] <= self.stop_time.toPyDateTime()
+            self.data_frame = self.data_frame[after_start & before_end].reset_index(drop=True)
+
         self.update_signal.emit(60,
                              'Filtered data frame on provided start and stop times')
 
@@ -251,11 +257,11 @@ class DataFileProcessor(QtCore.QThread):
 
 def filter_on_time(df, start_time=None, stop_time=None):
     # currently broken due to timezone naiive and aware datetime objects
-    '''if start_time is not None and stop_time is not None:
-        #filter on both
+    if start_time is not None and stop_time is not None:
+        # filter on both
         after_start = df['Datetime'] >= start_time.toPyDateTime()
         before_end = df['Datetime'] <= stop_time.toPyDateTime()
-        return df[after_start and before_end]'''
+        return df[after_start & before_end].reset_index(drop=True)
     return df
 
 

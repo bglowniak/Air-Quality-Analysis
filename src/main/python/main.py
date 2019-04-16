@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPush
 from PyQt5.QtCore import QDateTime
 
 import sys
-from subprocess import Popen
+import os
 
 from clean import process_file
 
@@ -39,21 +39,17 @@ class MainWindow(QMainWindow):
         self.master.setCurrentIndex(1)
 
         if output == None:
-            self.output_path = filepath[:len(filepath) - len(filename)] + "data_out"
+            output_path = filepath[:len(filepath) - len(filename)] + "data_out"
         else:
-            self.output_path = output
+            output_path = output
         try:
-            self.output_name = process_file(filepath, output_path=self.output_path,
-                               start_time=start_time,
-                               stop_time=end_time,
-                               averaging_range=averaging_duration)
-            self.progress_widget.begin_progress(filename, self.output_path, averaging_duration, start_time, end_time)
-        except:
-            print("Error!")
+            self.progress_widget.begin_progress(filename, filepath, output_path, averaging_duration, start_time, end_time)
+        except Exception as e:
+            print(e) # temporary, will handle
             self.start_over()
 
-    def complete_analysis(self, output_path):
-        self.master.widget(2).set_output(self.output_path, self.output_name)
+    def complete_analysis(self, output_path, output_name):
+        self.master.widget(2).set_output(output_path, output_name)
         self.master.setCurrentIndex(2)
 
     def start_over(self):
@@ -103,7 +99,7 @@ class MainWidget(QWidget):
 
         self.file = None
 
-        layout.setContentsMargins(6,10,6,8)
+        layout.setContentsMargins(6, 10, 6, 8)
 
         return layout
 
@@ -125,7 +121,7 @@ class MainWidget(QWidget):
 
         self.output_path = None
 
-        layout.setContentsMargins(6,10,6,8)
+        layout.setContentsMargins(6, 10, 6, 8)
 
         return layout
 
@@ -149,7 +145,7 @@ class MainWidget(QWidget):
 
         layout.addWidget(comboBox)
 
-        layout.setContentsMargins(6,8,6,8)
+        layout.setContentsMargins(6, 8, 6, 8)
 
         return layout
 
@@ -207,12 +203,13 @@ class MainWidget(QWidget):
         widget.setFixedHeight(50)
         widget.setEnabled(False)
 
-        layout.setContentsMargins(6,8,6,10)
+        layout.setContentsMargins(6, 8, 6, 10)
 
         return widget
 
     def get_file(self, label):
         fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "", "Data Files (*.csv *.xls *.xlsx);;All Files (*)")
+
         if fileName:
             self.file = fileName.split("/")[-1]
             self.filepath = fileName
@@ -266,7 +263,15 @@ class MainWidget(QWidget):
             start_time = None
             end_time = None
 
-        self.parentWidget().parentWidget().start_analysis(self.file, self.filepath, self.output_path, self.averaging_duration, self.time_selected, start_time, end_time)
+        self.parentWidget().parentWidget().start_analysis(
+            self.file,
+            self.filepath,
+            self.output_path,
+            self.averaging_duration,
+            self.time_selected,
+            start_time,
+            end_time
+        )
 
     def reset(self):
         self.file = None
@@ -305,7 +310,7 @@ class ProgressWidget(QWidget):
 
         self.setLayout(self.layout)
 
-    def begin_progress(self, filename, output_path, averaging, start, end):
+    def begin_progress(self, filename, filepath, output_path, averaging, start, end):
         self.filename_label.setText("File Name: " + filename)
         self.averaging_label.setText("Averaging Duration: " + averaging)
         if start != None and end != None:
@@ -321,7 +326,12 @@ class ProgressWidget(QWidget):
             self.completed += .00005
             self.progress.setValue(self.completed)
 
-        self.parentWidget().parentWidget().complete_analysis(output_path)
+        output_name = process_file(filepath, output_path=output_path,
+                                             start_time=start,
+                                             stop_time=end,
+                                             averaging_range=averaging)
+
+        self.parentWidget().parentWidget().complete_analysis(output_path, output_name)
 
 class CompleteWidget(QWidget):
     def __init__(self):
@@ -360,17 +370,23 @@ class CompleteWidget(QWidget):
         self.layout.addLayout(self.buttons)
         self.setLayout(self.layout)
 
+        self.result.clicked.connect(partial(self.open_result))
+
     def set_output(self, output_path, output_name):
-        self.file_name.setText(output_name + " created!")
-        self.filepath.setText("Output Path: " + output_path)
-        self.result.clicked.connect(partial(self.open_result, output_path, output_name))
+        self.output_path = output_path
+        self.output_name = output_name
+        self.file_name.setText(self.output_name + " created!")
+        self.filepath.setText("Output Path: " + self.output_path)
 
     def reset(self):
+        self.output_path = None
+        self.output_name = None
         self.parentWidget().parentWidget().start_over()
 
-    def open_result(self, path, name):
-        full_path = path + "/" + name
-        p = Popen(full_path, shell=True)
+    def open_result(self):
+        if not self.output_path is None and not self.output_name is None:
+            full_path = self.output_path + "/" + self.output_name
+            os.startfile(full_path)
 
 if __name__ == '__main__':
     appctxt = AppContext()

@@ -19,7 +19,7 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
     @param output_path: string path to output directory
     @param start_time: string or python time object for start of range to filter data
     @param stop_time: string or python time object for stop of range to filter data
-    @param averaging_range: string or pythong time object for averaging range
+    @param averaging_range: string or python time object for averaging range
 
     @result String filepath for resulting PDF file
     '''
@@ -33,17 +33,17 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
         print("IO error!")
         return e
     except Exception as e:
-        print("Unkown Error!!")
+        print("Unknown Error!!")
         print(e)
         return e
-    
+
     return data_obj.output_fn
 
 class Data_File():
     '''Data File Class - handles file processing automatically upon creation
 
     @param filepath: the path to the input file
-    @param outupt_path: the folder path for outputting files
+    @param output_path: the folder path for outputting files
 
     @attribute sensor_type: Sensor enum value, calculated from identify_file() function
     @attribute data_frame: data stored in a pandas DataFrame object
@@ -51,7 +51,7 @@ class Data_File():
     @attribute output_fn: output file name
     @attribute file_mod: the file name addition including timestamp and sensor type
 
-    TODO: @function make_pdf: 
+    TODO: @function make_pdf:
     '''
     def read_file(self, filepath):
         #reads file and returns pandas dataframe
@@ -106,7 +106,7 @@ class Data_File():
         #writes outputs to file
         #TODO: in finished product, this won't write results, only calculate stats and pass to pdf gen
         self.output_fn = basic_stats(self.data_frame, self.output_path, self.file_mod)
-        
+
     def store_clean_data(self):
         #writes clean csv to output path
         fn = self.file_mod + '_cleaned.csv'
@@ -199,7 +199,7 @@ def threshold_graph(df, output_path, file_mod):
     outpath = os.path.join(output_path, fn)
     plt.savefig(outpath, dpi='figure')
     return outpath
-   
+
 #Below is for testing purposes only
 if __name__ == "__main__":
     python_folder = os.path.dirname(os.path.abspath(__file__))

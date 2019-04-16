@@ -136,7 +136,7 @@ class MainWidget(QWidget):
         layout.addWidget(instruction)
 
         comboBox = QComboBox(self)
-        self.averaging_duration = "1 Minute" # default
+        self.averaging_duration = "1 Minute"#["1 Minute", "5 Minutes", "1 Hour", "24 Hours", "3 Months", "6 Months", "1 Year"] # default
         comboBox.addItem("1 Minute")
         comboBox.addItem("5 Minutes")
         comboBox.addItem("1 Hour")

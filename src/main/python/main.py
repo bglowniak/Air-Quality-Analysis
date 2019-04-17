@@ -1,9 +1,8 @@
 from fbs_runtime.application_context import ApplicationContext
-from functools import partial
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox
-
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox, QLineEdit
 from PyQt5.QtCore import QDateTime
 
+from functools import partial
 import sys
 import os
 
@@ -35,7 +34,7 @@ class MainWindow(QMainWindow):
 
         self.setStyleSheet(stylesheet)
 
-    def start_analysis(self, filename, filepath, output, averaging_duration, time_selected, start_time, end_time):
+    def start_analysis(self, filename, filepath, output, ad_number, ad_unit, time_selected, start_time, end_time):
         self.master.setCurrentIndex(1)
 
         if output == None:
@@ -43,9 +42,9 @@ class MainWindow(QMainWindow):
         else:
             output_path = output
         try:
-            self.progress_widget.begin_progress(filename, filepath, output_path, averaging_duration, start_time, end_time)
+            self.progress_widget.begin_progress(filename, filepath, output_path, ad_number, ad_unit, start_time, end_time)
         except Exception as e:
-            print(e) # temporary, will handle
+            print(e) # TODO: Raise Error Dialog
             self.start_over()
 
     def complete_analysis(self, output_path, output_name):
@@ -56,101 +55,112 @@ class MainWindow(QMainWindow):
         self.master.widget(0).reset()
         self.master.setCurrentIndex(0)
 
+    def raise_error(self, window_title, text, informative_text):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setWindowTitle(window_title)
+        msg.setText(text)
+        msg.setInformativeText(informative_text)
+        msg.exec_()
+
 class MainWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.layout = QVBoxLayout()
-        self.title_label = QLabel("CDC Air Quality Analysis")
-        self.title_label.setObjectName("title")
-        self.layout.addWidget(self.title_label)
-        self.file_select_layout = self.file_select_layout()
-        self.output_path_layout = self.output_path_layout()
-        self.averaging_duration_layout = self.averaging_duration_layout()
-        self.time_range_layout = self.time_range_layout()
-        self.time_selectors = self.time_selectors()
+        self.output_path = None
+        self.file = None
+        self.ad_number = None
+        self.ad_unit = None
+        self.VALID_FILES = ["xlsx", "xls", "csv"]
+        self.AD_UNITS = ["Seconds", "Minutes", "Hours", "Days", "Weeks", "Months", "Years"]
 
-        self.layout.addLayout(self.file_select_layout)
-        self.layout.addLayout(self.output_path_layout)
-        self.layout.addLayout(self.averaging_duration_layout)
-        self.layout.addLayout(self.time_range_layout)
-        self.layout.addWidget(self.time_selectors)
+        title_label = QLabel("CDC Air Quality Analysis")
+        title_label.setObjectName("title")
+        file_select_layout = self.file_select_layout()
+        output_path_layout = self.output_path_layout()
+        averaging_duration_layout = self.averaging_duration_layout()
+        time_range_layout = self.time_range_layout()
+        self.time_selectors = self.time_selectors()
 
         process_file = QPushButton("Process File")
         process_file.clicked.connect(self.begin_process)
-        self.layout.addWidget(process_file)
 
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(title_label)
+        self.layout.addLayout(file_select_layout)
+        self.layout.addLayout(output_path_layout)
+        self.layout.addLayout(averaging_duration_layout)
+        self.layout.addLayout(time_range_layout)
+        self.layout.addWidget(self.time_selectors)
+        self.layout.addWidget(process_file)
         self.setLayout(self.layout)
 
     def file_select_layout(self):
-        layout = QHBoxLayout()
         instruction = QLabel("Select Data File:")
         instruction.setObjectName("instruction")
-        layout.addWidget(instruction)
 
         self.file_name = QLabel("No File Selected")
         self.file_name.setObjectName("fileName")
         self.file_name.setFixedWidth(200)
+
         button = QPushButton("Browse")
         button.setFixedWidth(100)
         button.clicked.connect(partial(self.get_file, self.file_name))
 
+        layout = QHBoxLayout()
+        layout.addWidget(instruction)
         layout.addWidget(self.file_name)
         layout.addWidget(button)
-
-        self.file = None
-
         layout.setContentsMargins(6, 10, 6, 8)
 
         return layout
 
     def output_path_layout(self):
-        layout = QHBoxLayout()
         instruction = QLabel("Select Output Path:")
         instruction.setObjectName("instruction")
-        layout.addWidget(instruction)
 
         self.output_select = QLabel("No Path Selected")
         self.output_select.setObjectName("fileName")
         self.output_select.setFixedWidth(200)
+
         button = QPushButton("Browse")
         button.setFixedWidth(100)
         button.clicked.connect(partial(self.get_output, self.output_select))
 
+        layout = QHBoxLayout()
+        layout.addWidget(instruction)
         layout.addWidget(self.output_select)
         layout.addWidget(button)
-
-        self.output_path = None
-
         layout.setContentsMargins(6, 10, 6, 8)
 
         return layout
 
     def averaging_duration_layout(self):
-        layout = QHBoxLayout()
         instruction = QLabel("Select Averaging Duration:")
         instruction.setObjectName("instruction")
-        layout.addWidget(instruction)
 
+        self.ad_number_input = QLineEdit(self)
+        self.ad_number_input.setPlaceholderText("Input a Number")
+        self.ad_number_input.setFixedWidth(125)
+        self.ad_number_input.setFixedHeight(25)
+
+        self.ad_unit = "Seconds" # default
         comboBox = QComboBox(self)
-        self.averaging_duration = "1 Minute"#["1 Minute", "5 Minutes", "1 Hour", "24 Hours", "3 Months", "6 Months", "1 Year"] # default
-        comboBox.addItem("1 Minute")
-        comboBox.addItem("5 Minutes")
-        comboBox.addItem("1 Hour")
-        comboBox.addItem("24 Hours")
-        comboBox.addItem("3 Months")
-        comboBox.addItem("6 Months")
-        comboBox.addItem("1 Year")
-
+        comboBox.setFixedWidth(100)
+        for item in self.AD_UNITS:
+            comboBox.addItem(item)
         comboBox.currentIndexChanged.connect(partial(self.selection_change, comboBox))
 
+        layout = QHBoxLayout()
+        layout.addWidget(instruction)
+        layout.addWidget(self.ad_number_input)
         layout.addWidget(comboBox)
-
         layout.setContentsMargins(6, 8, 6, 8)
 
         return layout
 
     def selection_change(self, cb):
-        self.averaging_duration = cb.currentText()
+        self.ad_unit = cb.currentText()
 
     def time_range_layout(self):
         layout = QHBoxLayout()
@@ -233,41 +243,55 @@ class MainWidget(QWidget):
             self.time_selectors.setEnabled(False)
             self.time_selected = False
 
+    # TODO: Improve Error Messages, make sure this is fully robust
     def begin_process(self):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.setWindowTitle("Input Error")
+        main_window = self.parentWidget().parentWidget()
         if not self.file:
-            msg.setText("No File Selected")
-            msg.setInformativeText("Please Select a Valid File")
-            msg.exec_()
+            main_window.raise_error("Input Error",
+                                    "No File Selected",
+                                    "Please Select a Valid File")
             return
 
         extension = self.file.split(".")[-1]
-        if not extension == "xls" and not extension == "xlsx" and not extension == "csv":
-            msg.setText("Invalid File Type")
-            msg.setInformativeText("Valid File Types Include *.xls, *.xlsx, *.csv")
-            msg.exec_()
+        if not extension in self.VALID_FILES:
+            main_window.raise_error("Input Error",
+                                    "Invalid File Type",
+                                    "Valid File Types Include " + ", ".join(self.VALID_FILES))
+            return
+
+        self.ad_number = self.ad_number_input.text()
+        if not self.ad_number or not self.ad_unit:
+            main_window.raise_error("Input Error",
+                                    "Invalid Averaging Duration Selected",
+                                    "Please input a number and unit")
+            return
+
+        try:
+            self.ad_number = float(self.ad_number)
+        except ValueError:
+            main_window.raise_error("Input Error",
+                                    "Invalid Averaging Duration Selected",
+                                    "Input must be a number.")
             return
 
         if self.time_selected:
             start_time = self.start.dateTime()
             end_time = self.end.dateTime()
             if start_time > end_time:
-                msg.setText("Invalid Time Entered")
-                msg.setInformativeText("End Time cannot be greater than Start Time")
-                msg.exec_()
+                main_window.raise_error("Input Error",
+                                        "Invalid Time Entered",
+                                        "End Time cannot be greater than Start Time")
                 return
         else:
             start_time = None
             end_time = None
 
-        self.parentWidget().parentWidget().start_analysis(
+        main_window.start_analysis(
             self.file,
             self.filepath,
             self.output_path,
-            self.averaging_duration,
+            self.ad_number,
+            self.ad_unit,
             self.time_selected,
             start_time,
             end_time
@@ -278,6 +302,9 @@ class MainWidget(QWidget):
         self.file_name.setText("No File Selected")
         self.output_path = None
         self.output_select.setText("No Path Selected")
+        self.ad_number = None
+        self.ad_unit = "Seconds"
+        self.ad_number_input.clear()
         self.start.setDateTime(QDateTime.currentDateTime())
         self.end.setDateTime(QDateTime.currentDateTime())
 
@@ -310,9 +337,9 @@ class ProgressWidget(QWidget):
 
         self.setLayout(self.layout)
 
-    def begin_progress(self, filename, filepath, output_path, averaging, start, end):
+    def begin_progress(self, filename, filepath, output_path, ad_num, ad_unit, start, end):
         self.filename_label.setText("File Name: " + filename)
-        self.averaging_label.setText("Averaging Duration: " + averaging)
+        self.averaging_label.setText("Averaging Duration: " + ad_num + " " + ad_unit)
         if start != None and end != None:
             self.start_label.setText("Start Time: " + start.toString())
             self.end_label.setText("End Time: " + end.toString())

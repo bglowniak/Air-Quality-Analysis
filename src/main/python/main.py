@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
 
         self.setStyleSheet(stylesheet)
 
-    def start_analysis(self, filename, filepath, output, ad_number, ad_unit, time_selected, start_time, end_time):
+    def start_analysis(self, filename, filepath, output, ad_number, ad_unit, start_time, end_time):
         self.master.setCurrentIndex(1)
 
         if output == None:
@@ -268,7 +268,7 @@ class MainWidget(QWidget):
             return
 
         try:
-            self.ad_number = float(self.ad_number)
+            self.ad_number = int(self.ad_number)
         except ValueError:
             main_window.raise_error("Input Error",
                                     "Invalid Averaging Duration Selected",
@@ -299,7 +299,6 @@ class MainWidget(QWidget):
             self.output_path,
             self.ad_number,
             self.ad_unit,
-            self.time_selected,
             start_time,
             end_time
         )
@@ -346,7 +345,7 @@ class ProgressWidget(QWidget):
 
     def begin_progress(self, filename, filepath, output_path, ad_num, ad_unit, start, end):
         self.filename_label.setText("File Name: " + filename)
-        self.averaging_label.setText("Averaging Duration: " + ad_num + " " + ad_unit)
+        self.averaging_label.setText("Averaging Duration: " + str(ad_num) + " " + ad_unit)
         if start != None and end != None:
             self.start_label.setText("Start Time: " + start.toString())
             self.end_label.setText("End Time: " + end.toString())

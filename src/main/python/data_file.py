@@ -25,12 +25,28 @@ class Data_File():
 
     @attribute sensor_type: Sensor enum value, calculated from identify_file() function
     @attribute data_frame: data stored in a pandas DataFrame object
-    @attribute output_path: output folder path
-    @attribute output_fn: output file name
-    @attribute file_mod: the file name addition including timestamp and sensor type
+    @attribute output_folder: output folder path
+    @attribute output_file_path: full output file path
 
     TODO: @function make_pdf: 
     '''
+    def __init__(self, filepath, output_path, start_time=None, stop_time=None):
+        self.file_dict = {}
+        self.data_frame = self.read_file(filepath)
+        self.sensor_type = self.identify_file(self.data_frame)
+        self.set_output_folder(output_path)
+        self.file_mod = self.file_mod + time.strftime("%Y%m%d-%H%M%S")
+        self.clean(start_time, stop_time)
+
+        self.gen_statistics()
+        self.visualize()
+
+    def get_output_filepath(self):
+        if self.output_file_path is not None:
+            return self.output_file_path
+        else:
+            raise ValueError("output file not created!")
+    
     def read_file(self, filepath):
         #reads file and returns pandas dataframe
         try:
@@ -44,6 +60,7 @@ class Data_File():
 
     def identify_file(self, data_frame):
         #figures out file type
+        #also sets self.output_folder
         identifier = data_frame.columns[0]
         if identifier == 'sensor:model':
             self.file_mod = 'Air_Beam'
@@ -56,42 +73,53 @@ class Data_File():
             return Sensor.AIR_EGG
         raise ValueError('Invalid input file type')
 
-    def __init__(self, filepath, output_path, start_time=None, stop_time=None):
-        self.output_path = output_path
-        self.data_frame = self.read_file(filepath)
-        self.sensor_type = self.identify_file(self.data_frame)
-        self.file_mod = self.file_mod + time.strftime("%Y%m%d-%H%M%S")
-        self.clean(start_time, stop_time)
-        self.store_clean_data()
-        self.gen_statistics()
-        self.visualize()
+    def set_output_folder(self, output_path):
+        now = time.strftime("%Y%m%d-%H%M%S")
+        if self.sensor_type == Sensor.AIR_BEAM:
+            folder_name = 'Air_Beam' + now
+        elif self.sensor_type == Sensor.AIR_EGG:
+            folder_name = 'Air_Egg' + now
+        elif self.sensor_type == Sensor.PURPLE_AIR:
+            folder_name = 'Purple_Air' + now
+        self.output_folder = os.path.join(output_path, folder_name)
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
 
     def clean(self, start_time, stop_time):
+        #clean data to uniform type
         if self.sensor_type == Sensor.AIR_BEAM:
             self.data_frame = clean_air_beam(self.data_frame)
         elif self.sensor_type == Sensor.AIR_EGG:
             self.data_frame = clean_air_egg(self.data_frame)
         elif self.sensor_type == Sensor.PURPLE_AIR:
             self.data_frame = clean_purple_air(self.data_frame)
+        #Parse datetime column to Datetime object
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(parse_time_string)
+        #Sort data by datetime
         self.data_frame = self.data_frame.sort_values(by = 'Datetime')
+        #convert dataframe data from strings to numbers
         self.data_frame = self.data_frame.apply(pd.to_numeric, errors='ignore')
+        #since Datetime column was just converted to numbers, reconvert to dates
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(pd.to_datetime)
+        #Remove timezone information
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(lambda x: x.replace(tzinfo=None))
+
         self.data_frame = filter_on_time(self.data_frame, start_time, stop_time)
+        self.store_clean_data()
 
     def gen_statistics(self):
-        #calculates statistics
-        #writes outputs to file
-        #TODO: in finished product, this won't write results, only calculate stats and pass to pdf gen
-        self.output_fn = basic_stats(self.data_frame, self.output_path, self.file_mod)
+        #calls statistics functions
+        stats = basic_stats(self.data_frame, self.output_folder)
+        self.file_dict.update({'basic_stats': stats})
+        #will eventually get rid of line below
+        self.output_file_path = os.path.join(self.output_folder, stats)
         
     def store_clean_data(self):
         #writes clean csv to output path
         fn = self.file_mod + '_cleaned.csv'
-        output_filepath = os.path.join(self.output_path, fn)
+        output_filepath = os.path.join(self.output_folder, fn)
         self.data_frame.to_csv(output_filepath)
 
     def visualize(self):
-        boxplot(self.data_frame, self.output_path, self.file_mod)
-        threshold_graph(self.data_frame, self.output_path, self.file_mod)
+        self.file_dict.update({'boxplot': boxplot(self.data_frame, self.output_folder)})
+        self.file_dict.update({'threshold_graph': threshold_graph(self.data_frame, self.output_folder)})

@@ -16,7 +16,8 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
         os.makedirs(output_path)
 
     #a little hacky but does the trick for now
-    try:
+    data_obj = Data_File(filepath, output_path, start_time, stop_time)
+    '''try:
         data_obj = Data_File(filepath, output_path, start_time, stop_time)
     except IOError as e:
         print("IO error!")
@@ -24,9 +25,9 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
     except Exception as e:
         print("Unknown Error!!")
         print(e)
-        return e
+        return e'''
 
-    return data_obj.output_fn
+    return data_obj.get_output_filepath()
 
 #Below is for testing purposes only
 if __name__ == "__main__":

@@ -1,10 +1,13 @@
 from fbs_runtime.application_context import ApplicationContext
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox, QLineEdit
-from PyQt5.QtCore import QDateTime
+from PyQt5.QtCore import Qt, QDateTime
+from PyQt5.QtGui import QMovie
 
 from functools import partial
 import sys
 import os
+import time
+import threading
 
 from clean import process_file
 
@@ -13,15 +16,16 @@ class AppContext(ApplicationContext):
         version = self.build_settings['version']
         with open(self.get_resource('style.qss')) as f:
             stylesheet = f.read()
-        main_screen = MainWindow(version, stylesheet)
+        progress_icon = self.get_resource("loading-icon.gif")
+        main_screen = MainWindow(version, stylesheet, progress_icon)
         main_screen.show()
         return self.app.exec_()
 
 class MainWindow(QMainWindow):
-    def __init__(self, version, stylesheet):
+    def __init__(self, version, stylesheet, progress_icon):
         super().__init__()
         self.main_widget = MainWidget()
-        self.progress_widget = ProgressWidget()
+        self.progress_widget = ProgressWidget(progress_icon)
         self.complete_widget = CompleteWidget()
 
         self.master = QStackedWidget()
@@ -48,8 +52,8 @@ class MainWindow(QMainWindow):
             print(e) # TODO: Raise Error Dialog
             self.start_over()
 
-    def complete_analysis(self, output_path, output_name):
-        self.master.widget(2).set_output(output_path, output_name)
+    def complete_analysis(self, output):
+        self.master.widget(2).set_output(output)
         self.master.setCurrentIndex(2)
 
     def start_over(self):
@@ -309,13 +313,12 @@ class MainWidget(QWidget):
         self.output_path = None
         self.output_select.setText("No Path Selected")
         self.ad_number = None
-        self.ad_unit = self.AD_UNITS[0]
         self.ad_number_input.clear()
         self.start.setDateTime(QDateTime.currentDateTime())
         self.end.setDateTime(QDateTime.currentDateTime())
 
 class ProgressWidget(QWidget):
-    def __init__(self):
+    def __init__(self, progress_icon):
         super().__init__()
         title_label = QLabel("Analysis in progress...")
         title_label.setObjectName("title")
@@ -332,7 +335,11 @@ class ProgressWidget(QWidget):
         self.end_label = QLabel("")
         self.end_label.setObjectName("details")
 
-        self.progress = QProgressBar()
+        movie = QMovie(progress_icon)
+        loading_label = QLabel()
+        loading_label.setAlignment(Qt.AlignCenter)
+        loading_label.setMovie(movie)
+        movie.start()
 
         layout = QVBoxLayout()
         layout.addWidget(title_label)
@@ -340,7 +347,7 @@ class ProgressWidget(QWidget):
         layout.addWidget(self.averaging_label)
         layout.addWidget(self.start_label)
         layout.addWidget(self.end_label)
-        layout.addWidget(self.progress)
+        layout.addWidget(loading_label)
         self.setLayout(layout)
 
     def begin_progress(self, filename, filepath, output_path, ad_num, ad_unit, start, end):
@@ -353,19 +360,13 @@ class ProgressWidget(QWidget):
             self.start_label.setText("Start Time: N/A")
             self.end_label.setText("End Time: N/A")
 
-        self.completed = 0
-
-        while self.completed < 100:
-            self.completed += .00005
-            self.progress.setValue(self.completed)
-
-        output_name = process_file(filepath,
+        output = process_file(filepath,
                                    output_path,
                                    (ad_num, ad_unit),
                                    start_time=start,
                                    stop_time=end)
 
-        self.parentWidget().parentWidget().complete_analysis(output_path, output_name)
+        self.parentWidget().parentWidget().complete_analysis(output)
 
 class CompleteWidget(QWidget):
     def __init__(self):
@@ -395,20 +396,17 @@ class CompleteWidget(QWidget):
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
-    def set_output(self, output_path, output_name):
-        self.output_path = output_path
-        self.output_name = output_name
-        self.filepath.setText("Files Generated At: " + self.output_path)
+    def set_output(self, output):
+        self.output = output
+        self.filepath.setText("Output Files Generated At: " + self.output)
 
     def reset(self):
-        self.output_path = None
-        self.output_name = None
+        self.output = None
         self.parentWidget().parentWidget().start_over()
 
     def open_result(self):
-        if not self.output_path is None and not self.output_name is None:
-            full_path = os.path.join(self.output_path, self.output_name)
-            os.startfile(full_path)
+        if not self.output is None:
+            os.startfile(self.output)
 
 if __name__ == '__main__':
     appctxt = AppContext()

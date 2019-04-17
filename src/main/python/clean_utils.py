@@ -70,7 +70,7 @@ def resample(df, averaging_range):
         rate_comp = rate_num*60*60*24*365
         rate = str(rate_num) + 'Y'
     else:
-        raise ValueError("Averaging Duration must be measured in Minutes, Hours, or Days")
+        raise ValueError("Averaging Duration must be measured in Minutes, Hours, Days, Weeks, Months, or Years")
     
     if rate_in_seconds == rate_comp:
         print("Cannot resample file at the same rate it is already sampled!!")

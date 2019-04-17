@@ -110,8 +110,7 @@ class Data_File():
 
     def gen_statistics(self):
         #calls statistics functions
-        stats = basic_stats(self.data_frame, self.output_folder)
-        self.file_dict.update({'basic_stats': stats})
+        self.file_dict.update({'basic_stats': basic_stats(self.data_frame, self.output_folder)})
         
     def store_clean_data(self):
         #writes clean csv to output path

@@ -27,7 +27,6 @@ def threshold_graph(df, output_folder):
     axarr[0].legend()
     axarr[0].set_title('Particulate Matter and Humidity')
     axarr[1].plot(df['Datetime'], df['Humidity'], label='Humidity (percent)')
-    #plt.xticks([df['Datetime'][0], df['Datetime'][5000], df['Datetime'][10000]])
     axarr[1].legend()
     fn = 'threshold_graph.png'
     outpath = os.path.join(output_folder, fn)

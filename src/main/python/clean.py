@@ -16,15 +16,6 @@ def process_file(filepath, output_path, averaging_range, start_time=None, stop_t
         os.makedirs(output_path)
 
     data_obj = Data_File(filepath, output_path, averaging_range, start_time, stop_time)
-    '''try:
-        data_obj = Data_File(filepath, output_path, start_time, stop_time)
-    except IOError as e:
-        print("IO error!")
-        return e
-    except Exception as e:
-        print("Unknown Error!!")
-        print(e)
-        return e'''
 
     return data_obj.get_output_filepath()
 

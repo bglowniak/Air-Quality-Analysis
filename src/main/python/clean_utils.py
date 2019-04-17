@@ -75,6 +75,7 @@ def resample(df, averaging_range):
     try:
         df_resampled = df.resample(rate, on='Datetime').mean().reset_index()
         df_resampled = df_resampled.dropna(thresh=2).reset_index(drop=True)
+        res = df_resampled
     except MemoryError:
         print('Memory Error due to high resample rate!! Data Resampling Ignored!')
         res = df

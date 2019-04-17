@@ -37,11 +37,12 @@ class Data_File():
         self.data_frame = self.read_file(filepath)
         self.sensor_type = self.identify_file(self.data_frame)
         self.set_output_folder(output_path)
-        self.file_mod = self.file_mod + time.strftime("%Y%m%d-%H%M%S")
         self.clean(start_time, stop_time)
 
         self.gen_statistics()
         self.visualize()
+        #line below is temporary, will later be removed and changed to pdf
+        self.output_file_path = self.output_folder
 
     def get_output_filepath(self):
         if self.output_file_path is not None:
@@ -65,13 +66,10 @@ class Data_File():
         #also sets self.output_folder
         identifier = data_frame.columns[0]
         if identifier == 'sensor:model':
-            self.file_mod = 'Air_Beam'
             return Sensor.AIR_BEAM
         if identifier == 'created_at':
-            self.file_mod = 'Purple_Air'
             return Sensor.PURPLE_AIR
         if identifier == 'Timestamp':
-            self.file_mod = 'Air_Egg'
             return Sensor.AIR_EGG
         raise ValueError('Invalid input file type')
 
@@ -114,12 +112,10 @@ class Data_File():
         #calls statistics functions
         stats = basic_stats(self.data_frame, self.output_folder)
         self.file_dict.update({'basic_stats': stats})
-        #will eventually get rid of line below
-        self.output_file_path = os.path.join(self.output_folder, stats)
         
     def store_clean_data(self):
         #writes clean csv to output path
-        fn = self.file_mod + '_cleaned.csv'
+        fn = 'cleaned_data.csv'
         output_filepath = os.path.join(self.output_folder, fn)
         self.data_frame.to_csv(output_filepath)
 

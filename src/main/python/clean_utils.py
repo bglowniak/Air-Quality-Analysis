@@ -45,13 +45,29 @@ def parse_time_string(s):
     d = dateutil.parser.parse(s)
     return d
 
-def resample(df, rate_num, rate_str):
+def resample(df, averaging_range):
+    rate_num = averaging_range[0]
+    rate_str = averaging_range[1]
+
+    rate_in_seconds = (df['Datetime'][1] - df['Datetime'][0]).total_seconds()
 
     if rate_str == 'Minutes':
+        if rate_in_seconds == rate_num*60:
+            #if the difference in time of two values is equal to the sample rate, the function below will fail
+            print("Cannot resample file at the same rate it is already sampled!!")
+            return df
         rate = str(rate_num) + 'T'
     elif rate_str == 'Hours':
+        if rate_in_seconds == rate_num*60*60:
+            #if the difference in time of two values is equal to the sample rate, the function below will fail
+            print("Cannot resample file at the same rate it is already sampled!!")
+            return df
         rate = str(rate_num) + 'H'
     elif rate_str == 'Days':
+        if rate_in_seconds == rate_num*60*60*24:
+            #if the difference in time of two values is equal to the sample rate, the function below will fail
+            print("Cannot resample file at the same rate it is already sampled!!")
+            return df
         rate = str(rate_num) + 'D'
     else:
         raise ValueError("Averaging Duration must be measured in Minutes, Hours, or Days")
@@ -62,6 +78,8 @@ def resample(df, rate_num, rate_str):
     except MemoryError:
         print('Memory Error due to high resample rate!! Data Resampling Ignored!')
         res = df
+    except ValueError:
+        print("ValueError at line 82 in clean_utils.py")
     if len(df_resampled) > len(df):
         print("Averaging duration rate is faster than original sample rate. Data Resampling Ignored.")
         res = df

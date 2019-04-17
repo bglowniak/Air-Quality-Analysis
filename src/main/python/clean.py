@@ -1,7 +1,7 @@
 import os
 from data_file import Data_File
 
-def process_file(filepath, output_path=None, start_time=None, stop_time=None, averaging_range=None):
+def process_file(filepath, output_path, averaging_range, start_time=None, stop_time=None, ):
     '''Interface to Front End
 
     @param filepath: string path to file input
@@ -12,11 +12,12 @@ def process_file(filepath, output_path=None, start_time=None, stop_time=None, av
 
     @result String filepath for resulting PDF file
     '''
+    print('Backend Initiated')
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     #a little hacky but does the trick for now
-    data_obj = Data_File(filepath, output_path, start_time, stop_time)
+    data_obj = Data_File(filepath, output_path, averaging_range, start_time, stop_time)
     '''try:
         data_obj = Data_File(filepath, output_path, start_time, stop_time)
     except IOError as e:
@@ -38,4 +39,4 @@ if __name__ == "__main__":
 
     for i in ['Air_beam_7_31_8.22', 'air_egg', 'Purple_air']:
         filename = os.path.join(app_folder, r'data/' + i + '.csv')
-        process_file(filename, r'C:\Users\Joel\Documents\GT Courses\Junior Design\Air-Quality-Analysis\data\data_out')
+        process_file(filename, (1, 'Hour'), r'C:\Users\Joel\Documents\GT Courses\Junior Design\Air-Quality-Analysis\data\data_out')

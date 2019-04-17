@@ -20,7 +20,7 @@ def boxplot(df, output_folder):
 
 def threshold_graph(df, output_folder):
     plt.close()
-    f, axarr = plt.subplots(2, figsize=[10,8], sharex = True)
+    _, axarr = plt.subplots(2, figsize=[10,8], sharex = True)
     axarr[0].plot(df['Datetime'], df['PM2.5'], label='PM 2.5')
     axarr[0].plot(df['Datetime'], df['PM10.0'], label='PM 10.0')
     axarr[0].hlines(25, df['Datetime'][0], df['Datetime'].tail(1), color='r', linestyles='dashed', label='Threshold')

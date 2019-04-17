@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from clean_utils import (clean_air_beam, clean_air_egg, clean_purple_air,
-                         filter_on_time, parse_time_string)
+                         filter_on_time, parse_time_string, resample)
 from stat_utils import basic_stats
 from vis_utils import boxplot, threshold_graph
 
@@ -27,10 +27,12 @@ class Data_File():
     @attribute data_frame: data stored in a pandas DataFrame object
     @attribute output_folder: output folder path
     @attribute output_file_path: full output file path
+    @attribute averaging_range: tuple containing integer then string indicating time to average values over
 
     TODO: @function make_pdf: 
     '''
-    def __init__(self, filepath, output_path, start_time=None, stop_time=None):
+    def __init__(self, filepath, output_path, averaging_range, start_time=None, stop_time=None):
+        self.averaging_range = averaging_range
         self.file_dict = {}
         self.data_frame = self.read_file(filepath)
         self.sensor_type = self.identify_file(self.data_frame)
@@ -105,6 +107,7 @@ class Data_File():
         self.data_frame['Datetime'] = self.data_frame['Datetime'].apply(lambda x: x.replace(tzinfo=None))
 
         self.data_frame = filter_on_time(self.data_frame, start_time, stop_time)
+        self.data_frame = resample(self.data_frame, self.averaging_range)
         self.store_clean_data()
 
     def gen_statistics(self):

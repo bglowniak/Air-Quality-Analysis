@@ -11,8 +11,9 @@ from clean import process_file
 class AppContext(ApplicationContext):
     def run(self):
         version = self.build_settings['version']
-        stylesheet = self.get_resource('style.qss')
-        main_screen = MainWindow(version, open(stylesheet).read())
+        with open(self.get_resource('style.qss')) as f:
+            stylesheet = f.read()
+        main_screen = MainWindow(version, stylesheet)
         main_screen.show()
         return self.app.exec_()
 
@@ -71,8 +72,9 @@ class MainWidget(QWidget):
         self.file = None
         self.ad_number = None
         self.ad_unit = None
+        self.time_selected = False
         self.VALID_FILES = ["xlsx", "xls", "csv"]
-        self.AD_UNITS = ["Seconds", "Minutes", "Hours", "Days", "Weeks", "Months", "Years"]
+        self.AD_UNITS = ["Minutes", "Hours", "Days", "Weeks", "Months", "Years"]
 
         title_label = QLabel("CDC Air Quality Analysis")
         title_label.setObjectName("title")
@@ -80,7 +82,7 @@ class MainWidget(QWidget):
         output_path_layout = self.output_path_layout()
         averaging_duration_layout = self.averaging_duration_layout()
         time_range_layout = self.time_range_layout()
-        self.time_selectors = self.time_selectors()
+        self.time_selectors = self.create_time_selectors()
 
         process_file = QPushButton("Process File")
         process_file.clicked.connect(self.begin_process)
@@ -140,11 +142,11 @@ class MainWidget(QWidget):
         instruction.setObjectName("instruction")
 
         self.ad_number_input = QLineEdit(self)
-        self.ad_number_input.setPlaceholderText("Input a Number")
+        self.ad_number_input.setPlaceholderText("Input an Integer")
         self.ad_number_input.setFixedWidth(125)
         self.ad_number_input.setFixedHeight(25)
 
-        self.ad_unit = "Seconds" # default
+        self.ad_unit = self.AD_UNITS[0] # default
         comboBox = QComboBox(self)
         comboBox.setFixedWidth(100)
         for item in self.AD_UNITS:
@@ -163,10 +165,8 @@ class MainWidget(QWidget):
         self.ad_unit = cb.currentText()
 
     def time_range_layout(self):
-        layout = QHBoxLayout()
         instruction = QLabel("Use Time Range?")
         instruction.setObjectName("instruction")
-        layout.addWidget(instruction)
 
         yes_rb = QRadioButton("Yes")
         no_rb = QRadioButton("No")
@@ -175,51 +175,52 @@ class MainWidget(QWidget):
         yes_rb.toggled.connect(partial(self.rb_state, yes_rb))
         no_rb.toggled.connect(partial(self.rb_state, no_rb))
 
+        layout = QHBoxLayout()
+        layout.addWidget(instruction)
         layout.addWidget(yes_rb)
         layout.addWidget(no_rb)
-
-        self.time_selected = False
-
         layout.setContentsMargins(6,8,6,8)
         layout.insertSpacing(1, 85)
         layout.insertSpacing(3, 80)
 
         return layout
 
-    def time_selectors(self):
-        widget = QWidget()
-        layout = QHBoxLayout()
-
+    def create_time_selectors(self):
         instruction = QLabel("Start Time:")
         instruction.setObjectName("instruction")
-        layout.addWidget(instruction)
 
         self.start = QDateTimeEdit(self)
         self.start.setCalendarPopup(True)
         self.start.setDateTime(QDateTime.currentDateTime())
-        layout.addWidget(self.start)
 
         instruction2 = QLabel("End Time:")
         instruction2.setObjectName("instruction")
-        layout.addWidget(instruction2)
 
         self.end = QDateTimeEdit(self)
         self.end.setCalendarPopup(True)
         self.end.setDateTime(QDateTime.currentDateTime())
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(6, 8, 6, 10)
+        layout.addWidget(instruction)
+        layout.addWidget(self.start)
+        layout.addWidget(instruction2)
         layout.addWidget(self.end)
 
+        widget = QWidget()
         widget.setLayout(layout)
-
         widget.setFixedHeight(50)
         widget.setEnabled(False)
-
-        layout.setContentsMargins(6, 8, 6, 10)
 
         return widget
 
     def get_file(self, label):
-        fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "", "Data Files (*.csv *.xls *.xlsx);;All Files (*)")
+        valid_files = ""
+        for ext in self.VALID_FILES:
+            valid_files += "*." + ext + " "
 
+        fileName, _ = QFileDialog.getOpenFileName(self, "Select Data Files", "",
+                                                        "Data Files (" + valid_files.strip() +");;All Files (*)")
         if fileName:
             self.file = fileName.split("/")[-1]
             self.filepath = fileName
@@ -274,6 +275,12 @@ class MainWidget(QWidget):
                                     "Input must be a number.")
             return
 
+        if not round(self.ad_number) == self.ad_number:
+            main_window.raise_error("Input Error",
+                                    "Invalid Averaging Duration Selected",
+                                    "Input cannot be a decimal/must be a whole number.")
+            return
+
         if self.time_selected:
             start_time = self.start.dateTime()
             end_time = self.end.dateTime()
@@ -303,7 +310,7 @@ class MainWidget(QWidget):
         self.output_path = None
         self.output_select.setText("No Path Selected")
         self.ad_number = None
-        self.ad_unit = "Seconds"
+        self.ad_unit = self.AD_UNITS[0]
         self.ad_number_input.clear()
         self.start.setDateTime(QDateTime.currentDateTime())
         self.end.setDateTime(QDateTime.currentDateTime())
@@ -311,31 +318,31 @@ class MainWidget(QWidget):
 class ProgressWidget(QWidget):
     def __init__(self):
         super().__init__()
-
-        self.layout = QVBoxLayout()
-
-        self.title_label = QLabel("Analysis in progress...")
-        self.title_label.setObjectName("title")
-        self.layout.addWidget(self.title_label)
+        title_label = QLabel("Analysis in progress...")
+        title_label.setObjectName("title")
 
         self.filename_label = QLabel("")
         self.filename_label.setObjectName("details")
+
         self.averaging_label = QLabel("")
         self.averaging_label.setObjectName("details")
+
         self.start_label = QLabel("")
         self.start_label.setObjectName("details")
+
         self.end_label = QLabel("")
         self.end_label.setObjectName("details")
 
-        self.layout.addWidget(self.filename_label)
-        self.layout.addWidget(self.averaging_label)
-        self.layout.addWidget(self.start_label)
-        self.layout.addWidget(self.end_label)
-
         self.progress = QProgressBar()
-        self.layout.addWidget(self.progress)
 
-        self.setLayout(self.layout)
+        layout = QVBoxLayout()
+        layout.addWidget(title_label)
+        layout.addWidget(self.filename_label)
+        layout.addWidget(self.averaging_label)
+        layout.addWidget(self.start_label)
+        layout.addWidget(self.end_label)
+        layout.addWidget(self.progress)
+        self.setLayout(layout)
 
     def begin_progress(self, filename, filepath, output_path, ad_num, ad_unit, start, end):
         self.filename_label.setText("File Name: " + filename)
@@ -353,57 +360,46 @@ class ProgressWidget(QWidget):
             self.completed += .00005
             self.progress.setValue(self.completed)
 
-        output_name = process_file(filepath, output_path=output_path,
-                                             start_time=start,
-                                             stop_time=end,
-                                             averaging_range=averaging)
+        output_name = process_file(filepath,
+                                   output_path,
+                                   (ad_num, ad_unit),
+                                   start_time=start,
+                                   stop_time=end)
 
         self.parentWidget().parentWidget().complete_analysis(output_path, output_name)
 
 class CompleteWidget(QWidget):
     def __init__(self):
         super().__init__()
-
-        self.layout = QVBoxLayout()
-
-        self.title = QLabel("Analysis Complete!")
-        self.title.setObjectName("title")
-        self.layout.addWidget(self.title)
-
-        self.file_name = QLabel()
-        self.file_name.setWordWrap(True)
-        self.file_name.setObjectName("details")
-        self.file_name.setFixedHeight(50)
+        title = QLabel("Analysis Complete!")
+        title.setObjectName("title")
 
         self.filepath = QLabel()
         self.filepath.setWordWrap(True)
         self.filepath.setObjectName("details")
         self.filepath.setFixedHeight(50)
 
-        self.layout.addWidget(self.file_name)
-        self.layout.addWidget(self.filepath)
+        result = QPushButton("View Results")
+        result.clicked.connect(partial(self.open_result))
 
-        self.layout.insertSpacing(3, 75)
+        start_over = QPushButton("Start Over")
+        start_over.clicked.connect(self.reset)
 
-        self.buttons = QHBoxLayout()
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(result)
+        button_layout.addWidget(start_over)
 
-        self.result = QPushButton("View Results")
-        self.buttons.addWidget(self.result)
-
-        self.start_over = QPushButton("Start Over")
-        self.start_over.clicked.connect(self.reset)
-        self.buttons.addWidget(self.start_over)
-
-        self.layout.addLayout(self.buttons)
-        self.setLayout(self.layout)
-
-        self.result.clicked.connect(partial(self.open_result))
+        layout = QVBoxLayout()
+        layout.addWidget(title)
+        layout.addWidget(self.filepath)
+        layout.insertSpacing(3, 75)
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
 
     def set_output(self, output_path, output_name):
         self.output_path = output_path
         self.output_name = output_name
-        self.file_name.setText(self.output_name + " created!")
-        self.filepath.setText("Output Path: " + self.output_path)
+        self.filepath.setText("Files Generated At: " + self.output_path)
 
     def reset(self):
         self.output_path = None
@@ -412,7 +408,7 @@ class CompleteWidget(QWidget):
 
     def open_result(self):
         if not self.output_path is None and not self.output_name is None:
-            full_path = self.output_path + "/" + self.output_name
+            full_path = os.path.join(self.output_path, self.output_name)
             os.startfile(full_path)
 
 if __name__ == '__main__':

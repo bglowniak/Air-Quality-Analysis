@@ -12,11 +12,9 @@ def process_file(filepath, output_path, averaging_range, start_time=None, stop_t
 
     @result String filepath for resulting PDF file
     '''
-    print('Backend Initiated')
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    #a little hacky but does the trick for now
     data_obj = Data_File(filepath, output_path, averaging_range, start_time, stop_time)
     '''try:
         data_obj = Data_File(filepath, output_path, start_time, stop_time)

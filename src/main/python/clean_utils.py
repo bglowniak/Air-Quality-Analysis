@@ -52,25 +52,29 @@ def resample(df, averaging_range):
     rate_in_seconds = (df['Datetime'][1] - df['Datetime'][0]).total_seconds()
 
     if rate_str == 'Minutes':
-        if rate_in_seconds == rate_num*60:
-            #if the difference in time of two values is equal to the sample rate, the function below will fail
-            print("Cannot resample file at the same rate it is already sampled!!")
-            return df
+        rate_comp = rate_num*60
         rate = str(rate_num) + 'T'
     elif rate_str == 'Hours':
-        if rate_in_seconds == rate_num*60*60:
-            #if the difference in time of two values is equal to the sample rate, the function below will fail
-            print("Cannot resample file at the same rate it is already sampled!!")
-            return df
+        rate_comp = rate_num*60*60
         rate = str(rate_num) + 'H'
     elif rate_str == 'Days':
-        if rate_in_seconds == rate_num*60*60*24:
-            #if the difference in time of two values is equal to the sample rate, the function below will fail
-            print("Cannot resample file at the same rate it is already sampled!!")
-            return df
+        rate_comp = rate_num*60*60*24
         rate = str(rate_num) + 'D'
+    elif rate_str == 'Weeks':
+        rate_comp = rate_num*60*60*24*7
+        rate = str(rate_num) + 'W'
+    elif rate_str == 'Months':
+        rate_comp = rate_num*60*60*24*30
+        rate = str(rate_num) + 'M'
+    elif rate_str == 'Years':
+        rate_comp = rate_num*60*60*24*365
+        rate = str(rate_num) + 'Y'
     else:
         raise ValueError("Averaging Duration must be measured in Minutes, Hours, or Days")
+    
+    if rate_in_seconds == rate_comp:
+        print("Cannot resample file at the same rate it is already sampled!!")
+        return df
 
     try:
         df_resampled = df.resample(rate, on='Datetime').mean().reset_index()

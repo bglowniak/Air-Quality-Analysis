@@ -6,7 +6,6 @@ from PyQt5.QtGui import QMovie
 from functools import partial
 import sys
 import os
-import time
 import threading
 
 from clean import process_file
@@ -49,7 +48,7 @@ class MainWindow(QMainWindow):
         try:
             self.progress_widget.begin_progress(filename, filepath, output_path, ad_number, ad_unit, start_time, end_time)
         except Exception as e:
-            print(e) # TODO: Raise Error Dialog
+            self.raise_error("Data Processing Error", "An error has occurred while processing the file.", e)
             self.start_over()
 
     def complete_analysis(self, output):
@@ -248,27 +247,26 @@ class MainWidget(QWidget):
             self.time_selectors.setEnabled(False)
             self.time_selected = False
 
-    # TODO: Improve Error Messages, make sure this is fully robust
     def begin_process(self):
         main_window = self.parentWidget().parentWidget()
         if not self.file:
             main_window.raise_error("Input Error",
                                     "No File Selected",
-                                    "Please Select a Valid File")
+                                    "Please select a file for analysis.")
             return
 
         extension = self.file.split(".")[-1]
         if not extension in self.VALID_FILES:
             main_window.raise_error("Input Error",
-                                    "Invalid File Type",
-                                    "Valid File Types Include " + ", ".join(self.VALID_FILES))
+                                    "Invalid File Type Selected",
+                                    "Valid file types include " + ", ".join(self.VALID_FILES) + ".")
             return
 
         self.ad_number = self.ad_number_input.text()
         if not self.ad_number or not self.ad_unit:
             main_window.raise_error("Input Error",
                                     "Invalid Averaging Duration Selected",
-                                    "Please input a number and unit")
+                                    "Please input an integer and unit for the averaging duration.")
             return
 
         try:
@@ -276,13 +274,13 @@ class MainWidget(QWidget):
         except ValueError:
             main_window.raise_error("Input Error",
                                     "Invalid Averaging Duration Selected",
-                                    "Input must be a number.")
+                                    "Averaging duration must be a whole number.")
             return
 
         if not round(self.ad_number) == self.ad_number:
             main_window.raise_error("Input Error",
                                     "Invalid Averaging Duration Selected",
-                                    "Input cannot be a decimal/must be a whole number.")
+                                    "Averaging duration must be a whole number.")
             return
 
         if self.time_selected:
@@ -291,7 +289,7 @@ class MainWidget(QWidget):
             if start_time > end_time:
                 main_window.raise_error("Input Error",
                                         "Invalid Time Entered",
-                                        "End Time cannot be greater than Start Time")
+                                        "End Time cannot be greater than Start Time.")
                 return
         else:
             start_time = None
@@ -360,6 +358,8 @@ class ProgressWidget(QWidget):
             self.start_label.setText("Start Time: N/A")
             self.end_label.setText("End Time: N/A")
 
+        # TODO: figure out a way to get screen to switch and gif to run while this is running
+        # or re-implement progress bar?
         output = process_file(filepath,
                                    output_path,
                                    (ad_num, ad_unit),

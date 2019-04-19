@@ -38,6 +38,8 @@ def filter_on_time(df, start_time=None, stop_time=None):
         #filter on both
         after_start = df['Datetime'] >= start_time.toPyDateTime()
         before_end = df['Datetime'] <= stop_time.toPyDateTime()
+        if len(df[after_start & before_end].index) == 0:
+            raise ValueError("start and stop time given is outside range of file!")
         return df[after_start & before_end].reset_index(drop=True)
     return df
 

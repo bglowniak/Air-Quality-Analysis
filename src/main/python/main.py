@@ -23,7 +23,6 @@ class AppContext(ApplicationContext):
         with open(self.get_resource("style.qss")) as f:
             stylesheet = f.read()
         progress_icon = self.get_resource("loading-icon.gif")
-        print(progress_icon)
         main_screen = MainWindow(version, stylesheet, progress_icon)
         main_screen.show()
         return self.app.exec_()
@@ -74,20 +73,21 @@ class MainWindow(QMainWindow):
         if output_path == None:
             output_path = file_path[:len(file_path) - len(file_name)] + "data_out"
 
-        try:
-            self.progress_widget.begin_progress(file_name,
-                                                file_path,
-                                                output_path,
-                                                ad_number, ad_unit,
-                                                start_time, end_time)
-        except Exception as e:
-            self.raise_error("Data Processing Error", "An error has occurred while processing the file.", str(e))
-            self.start_over() # return to the main screen
+        self.progress_widget.begin_progress(file_name,
+                                            file_path,
+                                            output_path,
+                                            ad_number, ad_unit,
+                                            start_time, end_time)
 
     # move to the completion screen with the resultant output path
-    def complete_analysis(self, output):
-        self.master.widget(2).set_output(output)
-        self.master.setCurrentIndex(2)
+    # if an error occurred, display to the user and return to main screen
+    def complete_analysis(self, output, error):
+        if error:
+            self.raise_error("Data Processing Error", "An error has occurred while processing the file.", output)
+            self.start_over()
+        else:
+            self.master.widget(2).set_output(output)
+            self.master.setCurrentIndex(2)
 
     # return to the main screen and reset inputs
     def start_over(self):
@@ -416,7 +416,7 @@ class Processor(QObject):
         result_signal (pyqtSignal): used to emit the resultant output path back to the main thread
 
     '''
-    result_signal = pyqtSignal(str)
+    result_signal = pyqtSignal(str, bool)
 
     def __init__(self, file_path, output_path, ad_num, ad_unit, start, end):
         super().__init__()
@@ -427,14 +427,19 @@ class Processor(QObject):
         self.end_time = end
 
     def work(self):
-        output = process_file(self.file_path,
-                              self.output_path,
-                              self.ad_tuple,
-                              start_time=self.start_time,
-                              stop_time=self.end_time)
+        error = False
+        try:
+            output = process_file(self.file_path,
+                                  self.output_path,
+                                  self.ad_tuple,
+                                  start_time=self.start_time,
+                                  stop_time=self.end_time)
+        except Exception as e:
+            error = True
+            output = str(e) # we trust the back end to describe errors
 
         # tell the main thread that we're done processing
-        self.result_signal.emit(output)
+        self.result_signal.emit(output, error)
 
 
 class ProgressWidget(QWidget):
@@ -512,14 +517,14 @@ class ProgressWidget(QWidget):
         self.thread.start()
 
     # ends the process and makes a callback to the main window with the result
-    @pyqtSlot(str)
-    def finish(self, output):
+    @pyqtSlot(str, bool)
+    def finish(self, output, error):
         # stop and disconnect the thread from the processor object
         self.thread.quit()
         self.thread.wait()
         self.thread.disconnect()
         self.movie.stop()
-        self.parentWidget().parentWidget().complete_analysis(output)
+        self.parentWidget().parentWidget().complete_analysis(output, error)
 
 
 class CompleteWidget(QWidget):

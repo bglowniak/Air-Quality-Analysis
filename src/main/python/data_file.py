@@ -2,6 +2,8 @@ import os
 import time
 from enum import Enum
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -29,7 +31,7 @@ class Data_File():
     @attribute output_file_path: full output file path
     @attribute averaging_range: tuple containing integer then string indicating time to average values over
 
-    TODO: @function make_pdf: 
+    TODO: @function make_pdf:
     '''
     def __init__(self, filepath, output_path, averaging_range, start_time=None, stop_time=None):
         self.averaging_range = averaging_range
@@ -49,7 +51,7 @@ class Data_File():
             return self.output_file_path
         else:
             raise ValueError("output file not created!")
-    
+
     def read_file(self, filepath):
         #reads file and returns pandas dataframe
         try:
@@ -111,7 +113,7 @@ class Data_File():
     def gen_statistics(self):
         #calls statistics functions
         self.file_dict.update({'basic_stats': basic_stats(self.data_frame, self.output_folder)})
-        
+
     def store_clean_data(self):
         #writes clean csv to output path
         fn = 'cleaned_data.csv'

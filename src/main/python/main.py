@@ -1,12 +1,13 @@
 from fbs_runtime.application_context import ApplicationContext
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox, QLineEdit
-from PyQt5.QtCore import Qt, QDateTime
+from PyQt5.QtWidgets import qApp, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QFileDialog, QComboBox, QRadioButton, QDateTimeEdit, QStackedWidget, QProgressBar, QMessageBox, QLineEdit
+from PyQt5.QtCore import Qt, QDateTime, QThread, pyqtSignal, pyqtSlot, QObject
 from PyQt5.QtGui import QMovie
 
 from functools import partial
 import sys
 import os
 import threading
+import time
 
 from clean import process_file
 
@@ -48,8 +49,9 @@ class MainWindow(QMainWindow):
         try:
             self.progress_widget.begin_progress(filename, filepath, output_path, ad_number, ad_unit, start_time, end_time)
         except Exception as e:
-            self.raise_error("Data Processing Error", "An error has occurred while processing the file.", e)
-            self.start_over()
+            raise e
+            #self.raise_error("Data Processing Error", "An error has occurred while processing the file.", str(e))
+            #self.start_over()
 
     def complete_analysis(self, output):
         self.master.widget(2).set_output(output)
@@ -315,9 +317,33 @@ class MainWidget(QWidget):
         self.start.setDateTime(QDateTime.currentDateTime())
         self.end.setDateTime(QDateTime.currentDateTime())
 
+
+# credit to https://stackoverflow.com/questions/41526832/pyqt5-qthread-signal-not-working-gui-freeze
+class Processor(QObject):
+    result_signal = pyqtSignal(str)
+
+    def __init__(self, filepath, output_path, ad_num, ad_unit, start, end):
+        super().__init__()
+        self.filepath = filepath
+        self.output_path = output_path
+        self.ad_tuple = (ad_num, ad_unit)
+        self.start_time = start
+        self.end_time = end
+
+    def work(self):
+        output = process_file(self.filepath,
+                              self.output_path,
+                              self.ad_tuple,
+                              start_time=self.start_time,
+                              stop_time=self.end_time)
+        self.result_signal.emit(output)
+
 class ProgressWidget(QWidget):
     def __init__(self, progress_icon):
         super().__init__()
+        self.thread = QThread()
+        self.thread.setObjectName("Data Processor Thread")
+
         title_label = QLabel("Analysis in progress...")
         title_label.setObjectName("title")
 
@@ -333,11 +359,10 @@ class ProgressWidget(QWidget):
         self.end_label = QLabel("")
         self.end_label.setObjectName("details")
 
-        movie = QMovie(progress_icon)
+        self.movie = QMovie(progress_icon)
         loading_label = QLabel()
         loading_label.setAlignment(Qt.AlignCenter)
-        loading_label.setMovie(movie)
-        movie.start()
+        loading_label.setMovie(self.movie)
 
         layout = QVBoxLayout()
         layout.addWidget(title_label)
@@ -358,14 +383,21 @@ class ProgressWidget(QWidget):
             self.start_label.setText("Start Time: N/A")
             self.end_label.setText("End Time: N/A")
 
-        # TODO: figure out a way to get screen to switch and gif to run while this is running
-        # or re-implement progress bar?
-        output = process_file(filepath,
-                                   output_path,
-                                   (ad_num, ad_unit),
-                                   start_time=start,
-                                   stop_time=end)
+        self.movie.start()
+        qApp.processEvents()
 
+        self.processor = Processor(filepath, output_path, ad_num, ad_unit, start, end)
+        self.processor.moveToThread(self.thread)
+        self.thread.started.connect(self.processor.work)
+        self.processor.result_signal.connect(self.finish)
+        self.thread.start()
+
+    @pyqtSlot(str)
+    def finish(self, output):
+        self.thread.quit()
+        self.thread.wait()
+        self.thread.disconnect()
+        self.movie.stop()
         self.parentWidget().parentWidget().complete_analysis(output)
 
 class CompleteWidget(QWidget):

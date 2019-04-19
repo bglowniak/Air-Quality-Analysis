@@ -49,9 +49,8 @@ class MainWindow(QMainWindow):
         try:
             self.progress_widget.begin_progress(filename, filepath, output_path, ad_number, ad_unit, start_time, end_time)
         except Exception as e:
-            raise e
-            #self.raise_error("Data Processing Error", "An error has occurred while processing the file.", str(e))
-            #self.start_over()
+            self.raise_error("Data Processing Error", "An error has occurred while processing the file.", str(e))
+            self.start_over()
 
     def complete_analysis(self, output):
         self.master.widget(2).set_output(output)

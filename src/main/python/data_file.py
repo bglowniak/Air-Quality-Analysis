@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 from enum import Enum
 
 import matplotlib
@@ -9,8 +10,9 @@ import pandas as pd
 
 from clean_utils import (clean_air_beam, clean_air_egg, clean_purple_air,
                          filter_on_time, parse_time_string, resample)
-from stat_utils import basic_stats
+from stat_utils import basic_stats, above_threshold_stats
 from vis_utils import boxplot, threshold_graph
+#from generate_pdf import create_pdf
 
 
 class Sensor(Enum):
@@ -35,6 +37,9 @@ class Data_File():
     '''
     def __init__(self, filepath, output_path, averaging_range, start_time=None, stop_time=None):
         self.averaging_range = averaging_range
+        self.start_time = start_time
+        self.stop_time = stop_time
+        self.proc_start_time = datetime.datetime.now()
         self.file_dict = {}
         self.data_frame = self.read_file(filepath)
         self.sensor_type = self.identify_file(self.data_frame)
@@ -43,12 +48,11 @@ class Data_File():
 
         self.gen_statistics()
         self.visualize()
-        #line below is temporary, will later be removed and changed to pdf
-        self.output_file_path = self.output_folder
+        self.gen_pdf()
 
     def get_output_filepath(self):
-        if self.output_file_path is not None:
-            return self.output_file_path
+        if self.output_folder is not None:
+            return self.output_folder
         else:
             raise ValueError("output file not created!")
 
@@ -113,6 +117,7 @@ class Data_File():
     def gen_statistics(self):
         #calls statistics functions
         self.file_dict.update({'basic_stats': basic_stats(self.data_frame, self.output_folder)})
+        self.table = above_threshold_stats(self.data_frame)
 
     def store_clean_data(self):
         #writes clean csv to output path
@@ -123,3 +128,17 @@ class Data_File():
     def visualize(self):
         self.file_dict.update({'boxplot': boxplot(self.data_frame, self.output_folder)})
         self.file_dict.update({'threshold_graph': threshold_graph(self.data_frame, self.output_folder)})
+
+    def gen_pdf(self):
+        pass
+        avg_range_str = str(self.averaging_range[0]) + " " + self.averaging_range[1]
+
+        sensor_str = ''
+        if self.sensor_type == Sensor.AIR_BEAM:
+            sensor_str = 'Air Beam'
+        elif self.sensor_type == Sensor.AIR_EGG:
+            sensor_str = 'Air Egg'
+        elif self.sensor_type == Sensor.PURPLE_AIR:
+            sensor_str = 'Purple Air'
+
+        #create_pdf(sensor_str, avg_range_str, str(self.start_time), str(self.stop_time), str(self.proc_start_time), self.file_dict, self.table)

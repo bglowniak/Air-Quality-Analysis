@@ -39,7 +39,7 @@ def filter_on_time(df, start_time=None, stop_time=None):
         after_start = df['Datetime'] >= start_time.toPyDateTime()
         before_end = df['Datetime'] <= stop_time.toPyDateTime()
         if len(df[after_start & before_end].index) == 0:
-            raise ValueError("start and stop time given is outside range of file!")
+            raise ValueError("Start and Stop Times given are outside range of file.")
         return df[after_start & before_end].reset_index(drop=True)
     return df
 
@@ -72,8 +72,8 @@ def resample(df, averaging_range):
         rate_comp = rate_num*60*60*24*365
         rate = str(rate_num) + 'Y'
     else:
-        raise ValueError("Averaging Duration must be measured in Minutes, Hours, Days, Weeks, Months, or Years")
-    
+        raise ValueError("Averaging Duration must be measured in Minutes, Hours, Days, Weeks, Months, or Years.")
+
     if rate_in_seconds == rate_comp:
         print("Cannot resample file at the same rate it is already sampled!!")
         return df

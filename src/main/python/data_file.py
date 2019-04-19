@@ -54,7 +54,7 @@ class Data_File():
         if self.output_folder is not None:
             return self.output_folder
         else:
-            raise ValueError("output file not created!")
+            raise ValueError("Output path not created!")
 
     def read_file(self, filepath):
         #reads file and returns pandas dataframe
@@ -77,7 +77,7 @@ class Data_File():
             return Sensor.PURPLE_AIR
         if identifier == 'Timestamp':
             return Sensor.AIR_EGG
-        raise ValueError('Invalid input file type')
+        raise ValueError('Invalid input file type. File must be an AirBeam, PurpleAir, or AirEgg dataset')
 
     def set_output_folder(self, output_path):
         now = time.strftime("%Y%m%d-%H%M%S")

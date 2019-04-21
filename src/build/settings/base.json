@@ -2,5 +2,5 @@
     "app_name": "ATSDR Air Quality Analysis",
     "author": "Austin Bayon, Brian Glowniak, Zach Hussin, Joel Katz, Pramod Kotipalli, Thomas Napolitano",
     "main_module": "src/main/python/main.py",
-    "version": "0.0.2"
+    "version": "1.0.0"
 }

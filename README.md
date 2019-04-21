@@ -2,29 +2,29 @@
 
 GT Junior Design Project for the ATSDR/CDC
 
-Team Members:  
-Austin Bayon  
-Brian Glowniak  
-Zach Hussin  
-Joel Katz  
-Pramod Kotipalli  
-Thomas Napolitano  
+Team Members:
+Austin Bayon
+Brian Glowniak
+Zach Hussin
+Joel Katz
+Pramod Kotipalli
+Thomas Napolitano
 
-Clients:  
-Lt. Aaron Grober  
-Lt. Bradley Goodwin  
+Clients:
+Lt. Aaron Grober
+Lt. Bradley Goodwin
 
 ## Release Notes - v1.0.0
 
 ### New Features
 * Added the ability for a user to input a custom averaging duration.
-* Implemented a PDF generator that compiles all results into a single report. 
+* Implemented a PDF generator that compiles all results into a single report.
 * Added the ability for a user to select a custom output folder. If a path is not selected, the app places the results in a folder called data_out in the same directory as where the data file was selected.
 * Added new statistics (25/50/75% quartiles and number of times a sample passed PM thresholds).
 
 ### Bug Fixes
 * Fixed a bug on the completion screen where clicking "View Results" after multiple runs of the tool would open files from all runs.
-* When running the data processor, the app now properly transitions to the progress screen and the GUI does not freeze. 
+* When running the data processor, the app now properly transitions to the progress screen and the GUI does not freeze.
 * Fixed an issue where errors created on the back end would not be properly displayed in the GUI.
 * The app no longer crashes if the user inputs a start and end time outside of the range of the file selected.
 
@@ -34,7 +34,7 @@ Lt. Bradley Goodwin
 * Only one data file can be processed at a time.
 * When selecting a file or output path, the user can only click the "Browse" button to open the dialog. Clicking the text field (i.e. "No File Selected") does nothing.
 
-The app currently only accepts AirBeam, Purple Air, and AirEgg data sets based on what was provided from our client. This is in line with what was expected, but for future development, if these sensors modify how they present their data or our clients want to add functionality for different data sets, then the back end will need to be modified. 
+The app currently only accepts AirBeam, Purple Air, and AirEgg data sets based on what was provided from our client. This is in line with what was expected, but for future development, if these sensors modify how they present their data or our clients want to add functionality for different data sets, then the back end will need to be modified.
 
 ## Development/Installation Information
 
@@ -50,17 +50,17 @@ The only prerequisite is to have Python 3 installed on your machine. The app was
 
 git clone https://github.com/bglowniak/Air-Quality-Analysis.git
 
-# 2. Navigate into the folder and initialize a virtual environment. 
+# 2. Navigate into the folder and initialize a virtual environment.
 # This will allow you to install the required libraries locally in the repo.
 
 cd Air-Quality-Analysis
 pip install virtualenv
 
-# If you have one than one installation of Python, be sure to select Python 3.5+
+# If you have more than one installation of Python, be sure to select Python 3.5+
 
 virtualenv -p [path/to/python3] venv
 
-# The path to Python 3 depends on your computer and where you installed Python. 
+# The path to Python 3 depends on your computer and where you installed Python.
 # If you are using Bash, you can find it by using $(which python3) in Bash. If this doesn't work, see Troubleshooting below.
 
 # 3. Activate your virtual environment

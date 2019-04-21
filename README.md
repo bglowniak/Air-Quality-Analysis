@@ -2,17 +2,17 @@
 
 GT Junior Design Project for the ATSDR/CDC
 
-Team Members:
-Austin Bayon
-Brian Glowniak
-Zach Hussin
-Joel Katz
-Pramod Kotipalli
-Thomas Napolitano
+Team Members:  
+Austin Bayon  
+Brian Glowniak  
+Zach Hussin  
+Joel Katz  
+Pramod Kotipalli  
+Thomas Napolitano  
 
-Clients:
-Lt. Aaron Grober
-Lt. Bradley Goodwin
+Clients:  
+Lt. Aaron Grober  
+Lt. Bradley Goodwin  
 
 ## Release Notes - v1.0.0
 

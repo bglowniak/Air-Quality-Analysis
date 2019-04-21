@@ -11,7 +11,7 @@ import pandas as pd
 from clean_utils import (clean_air_beam, clean_air_egg, clean_purple_air,
                          filter_on_time, parse_time_string, resample)
 from stat_utils import basic_stats, above_threshold_stats
-from vis_utils import boxplot, threshold_graph
+from vis_utils import boxplot, humidity_graph, threshold_PM25, threshold_PM10
 #from generate_pdf import create_pdf
 
 
@@ -127,8 +127,10 @@ class Data_File():
 
     def visualize(self):
         self.file_dict.update({'boxplot': boxplot(self.data_frame, self.output_folder)})
-        self.file_dict.update({'threshold_graph': threshold_graph(self.data_frame, self.output_folder)})
-
+        self.file_dict.update({'humidity_graph': humidity_graph(self.data_frame, self.output_folder)})
+        self.file_dict.update({'PM25_thresh': threshold_PM25(self.data_frame, self.output_folder)})
+        self.file_dict.update({'PM10_thresh': threshold_PM10(self.data_frame, self.output_folder)})
+        
     def gen_pdf(self):
         pass
         avg_range_str = str(self.averaging_range[0]) + " " + self.averaging_range[1]

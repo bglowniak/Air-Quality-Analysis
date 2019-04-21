@@ -4,8 +4,9 @@ import pandas as pd
 def basic_stats(df, output_folder):
     df = df.describe()
     fn =  'general_statistics.csv'
-    df.to_csv(os.path.join(output_folder, fn))
-    return fn
+    outpath = os.path.join(output_folder, fn)
+    df.to_csv(outpath)
+    return outpath
 
 def extra_stats(df, output_path):
     #returns 95th percentile

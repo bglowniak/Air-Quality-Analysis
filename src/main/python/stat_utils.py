@@ -67,7 +67,8 @@ def above_threshold_stats(df, output_folder):
 
     rows = [row0, row1, row2, row3, row4, row5, row6, row7, row8]
     df = pd.DataFrame(rows)
-    df.to_csv(os.path.join(output_folder, 'threshold_stats.csv'))
+    df.to_csv(os.path.join(output_folder, 'threshold_stats.csv'), index=False)
+    
     return rows
 
     #      |          |               |  Threshold value  |  Num above  |  Percent above

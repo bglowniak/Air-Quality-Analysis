@@ -4,7 +4,9 @@ import pandas as pd
 def basic_stats(df, output_folder):
     stats = df.describe()
     stats = round(stats, 2)
-    fn =  'general_statistics.csv'
+    if "entry_id" in stats.columns:
+        stats = stats.drop("entry_id", axis=1)
+    fn = 'general_statistics.csv'
     outpath = os.path.join(output_folder, fn)
     stats.to_csv(outpath)
     return outpath

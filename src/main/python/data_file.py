@@ -140,4 +140,9 @@ class Data_File():
         elif self.sensor_type == Sensor.PURPLE_AIR:
             sensor_str = 'Purple Air'
 
-        create_pdf(sensor_str, avg_range_str, str(self.start_time), str(self.stop_time), str(self.proc_start_time), self.file_dict, self.table, self.output_folder)
+        start_time = self.start_time.toPyDateTime()
+        start_time = start_time.replace(microsecond=0)
+        stop_time = self.stop_time.toPyDateTime()
+        stop_time = stop_time.replace(microsecond=0)
+        proc_start_time = self.proc_start_time.replace(microsecond=0)
+        create_pdf(sensor_str, avg_range_str, str(start_time), str(stop_time), str(proc_start_time), self.file_dict, self.table, self.output_folder)

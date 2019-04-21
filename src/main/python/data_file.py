@@ -12,7 +12,7 @@ from clean_utils import (clean_air_beam, clean_air_egg, clean_purple_air,
                          filter_on_time, parse_time_string, resample)
 from stat_utils import basic_stats, above_threshold_stats
 from vis_utils import boxplot, humidity_graph, threshold_PM25, threshold_PM10
-#from generate_pdf import create_pdf
+from generate_pdf import create_pdf
 
 
 class Sensor(Enum):
@@ -23,16 +23,13 @@ class Sensor(Enum):
 
 class Data_File():
     '''Data File Class - handles file processing automatically upon creation
-
     @param filepath: the path to the input file
     @param outupt_path: the folder path for outputting files
-
     @attribute sensor_type: Sensor enum value, calculated from identify_file() function
     @attribute data_frame: data stored in a pandas DataFrame object
     @attribute output_folder: output folder path
     @attribute output_file_path: full output file path
     @attribute averaging_range: tuple containing integer then string indicating time to average values over
-
     TODO: @function make_pdf:
     '''
     def __init__(self, filepath, output_path, averaging_range, start_time=None, stop_time=None):
@@ -130,7 +127,7 @@ class Data_File():
         self.file_dict.update({'humidity_graph': humidity_graph(self.data_frame, self.output_folder)})
         self.file_dict.update({'PM25_thresh': threshold_PM25(self.data_frame, self.output_folder)})
         self.file_dict.update({'PM10_thresh': threshold_PM10(self.data_frame, self.output_folder)})
-        
+
     def gen_pdf(self):
         pass
         avg_range_str = str(self.averaging_range[0]) + " " + self.averaging_range[1]
@@ -143,4 +140,4 @@ class Data_File():
         elif self.sensor_type == Sensor.PURPLE_AIR:
             sensor_str = 'Purple Air'
 
-        #create_pdf(sensor_str, avg_range_str, str(self.start_time), str(self.stop_time), str(self.proc_start_time), self.file_dict, self.table)
+        create_pdf(sensor_str, avg_range_str, str(self.start_time), str(self.stop_time), str(self.proc_start_time), self.file_dict, self.table, self.output_folder)

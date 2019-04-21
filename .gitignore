@@ -4,3 +4,4 @@ venv/
 target/
 data/data_out/*
 src/main/python/__pycache__/*
+*.pdf

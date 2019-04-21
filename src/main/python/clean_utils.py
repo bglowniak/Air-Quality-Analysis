@@ -2,7 +2,7 @@ import dateutil.parser
 import pandas as pd
 
 def clean_purple_air(data_frame):
-    data_frame.columns = ['Datetime', 'entry_id', 'PM1.0', 'PM2.5', 'PM10.0', 'UptimeMinutes', 'RSSI_dbm', 'Temperature', 'Humidity', 'Pm2.5_CF_1_ug/m3']
+    data_frame.columns = ['Datetime', 'entry_id', 'PM1.0', 'PM2.5', 'PM10.0', 'UptimeMins', 'RSSI_dbm', 'Temperature', 'Humidity', 'Pm2.5_CF1']
     return data_frame
 
 def clean_air_egg(data_frame):

@@ -51,6 +51,9 @@ def resample(df, averaging_range):
     rate_num = averaging_range[0]
     rate_str = averaging_range[1]
 
+    if rate_num == 0:
+        raise ValueError("Averaging Range cannot be 0!")
+
     rate_in_seconds = (df['Datetime'][1] - df['Datetime'][0]).total_seconds()
 
     if rate_str == 'Minutes':

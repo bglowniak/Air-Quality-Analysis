@@ -2,10 +2,11 @@ import os
 import pandas as pd
 
 def basic_stats(df, output_folder):
-    df = df.describe()
+    stats = df.describe()
+    stats = round(stats, 2)
     fn =  'general_statistics.csv'
     outpath = os.path.join(output_folder, fn)
-    df.to_csv(outpath)
+    stats.to_csv(outpath)
     return outpath
 
 def extra_stats(df, output_path):
@@ -28,7 +29,7 @@ def extra_stats(df, output_path):
     stats_frame.to_csv(os.path.join(output_path, stats_name))
     return stats_name
 
-def above_threshold_stats(df):
+def above_threshold_stats(df, output_folder):
     
     PM25_24HR_WHO = 25
     PM25_ANNUAL_PRIMARY_WHO = 10
@@ -52,7 +53,7 @@ def above_threshold_stats(df):
 
     total = len(df.index)
 
-    row0 = ['', '', '', 'Threshold Value', 'Samples Above Threshold', 'Percent Samples Above Threshold']
+    row0 = ['', '', '', 'Threshold Value', 'Samples Above', 'Percent Above']
     row1 = ['WHO', 'PM 2.5', '24 Hour', '25 ug/m^3', str(w22), "{:.2f}%".format(w22/total)]
     row2 = ['', '', 'Annual Primary', '35 ug/m^3', str(w2a), "{:.2f}%".format(w2a/total)]
     row3 = ['', 'PM 10.0', '24 Hour', '50 ug/m^3', str(w102), "{:.2f}%".format(w102/total)]
@@ -62,8 +63,10 @@ def above_threshold_stats(df):
     row7 = ['', '', 'Annual Secondary', '15 ug/m^3', str(n2as), "{:.2f}%".format(n2as/total)]
     row8 = ['', 'PM 10.0', '24 Hour', '150 ug/m^3', str(n102), "{:.2f}%".format(n102/total)]
 
-
-    return [row0, row1, row2, row3, row4, row5, row6, row7, row8]
+    rows = [row0, row1, row2, row3, row4, row5, row6, row7, row8]
+    df = pd.DataFrame(rows)
+    df.to_csv(os.path.join(output_folder, 'threshold_stats.csv'))
+    return rows
 
     #      |          |               |  Threshold value  |  Num above  |  Percent above
     # WHO  |  PM 2.5  |      24 HR    |     25 ug/m^3     |    32       |    6%         

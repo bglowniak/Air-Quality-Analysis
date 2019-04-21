@@ -117,7 +117,7 @@ class Data_File():
     def gen_statistics(self):
         #calls statistics functions
         self.file_dict.update({'basic_stats': basic_stats(self.data_frame, self.output_folder)})
-        self.table = above_threshold_stats(self.data_frame)
+        self.table = above_threshold_stats(self.data_frame, self.output_folder)
 
     def store_clean_data(self):
         #writes clean csv to output path

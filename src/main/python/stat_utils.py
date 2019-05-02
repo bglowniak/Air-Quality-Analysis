@@ -32,7 +32,7 @@ def extra_stats(df, output_path):
     return stats_name
 
 def above_threshold_stats(df, output_folder):
-    
+
     PM25_24HR_WHO = 25
     PM25_ANNUAL_PRIMARY_WHO = 10
     PM10_24HR_WHO = 50
@@ -56,22 +56,22 @@ def above_threshold_stats(df, output_folder):
     total = len(df.index)
 
     row0 = ['', '', '', 'Threshold Value', 'Samples Above', 'Percent Above']
-    row1 = ['WHO', 'PM 2.5', '24 Hour', '25 ug/m^3', str(w22), "{:.2f}%".format(w22/total)]
-    row2 = ['', '', 'Annual Primary', '35 ug/m^3', str(w2a), "{:.2f}%".format(w2a/total)]
-    row3 = ['', 'PM 10.0', '24 Hour', '50 ug/m^3', str(w102), "{:.2f}%".format(w102/total)]
-    row4 = ['', '', 'Annual Primary', '20 ug/m^3', str(w10a), "{:.2f}%".format(w10a/total)]
-    row5 = ['NAAQS', 'PM 2.5', '24 Hour', '35 ug/m^3', str(n22), "{:.2f}%".format(n22/total)]
-    row6 = ['', '', 'Annual Primary', '12 ug/m^3', str(n2a), "{:.2f}%".format(n2a/total)]
-    row7 = ['', '', 'Annual Secondary', '15 ug/m^3', str(n2as), "{:.2f}%".format(n2as/total)]
-    row8 = ['', 'PM 10.0', '24 Hour', '150 ug/m^3', str(n102), "{:.2f}%".format(n102/total)]
+    row1 = ['WHO', 'PM 2.5', '24 Hour', '25 ug/m^3', str(w22), "{:.2f}%".format(w22/total * 100)]
+    row2 = ['', '', 'Annual Primary', '35 ug/m^3', str(w2a), "{:.2f}%".format(w2a/total * 100)]
+    row3 = ['', 'PM 10.0', '24 Hour', '50 ug/m^3', str(w102), "{:.2f}%".format(w102/total * 100)]
+    row4 = ['', '', 'Annual Primary', '20 ug/m^3', str(w10a), "{:.2f}%".format(w10a/total * 100)]
+    row5 = ['NAAQS', 'PM 2.5', '24 Hour', '35 ug/m^3', str(n22), "{:.2f}%".format(n22/total * 100)]
+    row6 = ['', '', 'Annual Primary', '12 ug/m^3', str(n2a), "{:.2f}%".format(n2a/total * 100)]
+    row7 = ['', '', 'Annual Secondary', '15 ug/m^3', str(n2as), "{:.2f}%".format(n2as/total * 100)]
+    row8 = ['', 'PM 10.0', '24 Hour', '150 ug/m^3', str(n102), "{:.2f}%".format(n102/total * 100)]
 
     rows = [row0, row1, row2, row3, row4, row5, row6, row7, row8]
     df = pd.DataFrame(rows)
     df.to_csv(os.path.join(output_folder, 'threshold_stats.csv'), index=False)
-    
+
     return rows
 
     #      |          |               |  Threshold value  |  Num above  |  Percent above
-    # WHO  |  PM 2.5  |      24 HR    |     25 ug/m^3     |    32       |    6%         
+    # WHO  |  PM 2.5  |      24 HR    |     25 ug/m^3     |    32       |    6%
     #      |          | Annual Primary|     35 ug/m^3     |    234      |    3%
-    #      |  PM 10.0 |      24 HR    |     
+    #      |  PM 10.0 |      24 HR    |

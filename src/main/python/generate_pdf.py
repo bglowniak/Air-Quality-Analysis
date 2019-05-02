@@ -6,10 +6,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class ReportPDF(FPDF):
+    def set_header(self, header_path):
+        self.header_path = header_path
+
     def header(self):
         self.set_font('Times', 'B', 15)  # Times New Roman, Bold, 15
         # ATSDR Logo
-        self.image(os.path.join(BASE_DIR, 'resources', 'base', 'ATSDR-logo.png'), w=50,h=13.187)
+        self.image(self.header_path, w=50,h=13.187)
         # adjust position to style the Title
         self.set_xy(x=60,y=10)
         self.cell(w=0,h=7.187, txt='Centers for Disease Control Prevention', border=0, ln=2)
@@ -25,7 +28,7 @@ class ReportPDF(FPDF):
     #     self.set_xy(-60, -20)
     #     self.cell(w=50, h=10, txt='Sample Footer Text')
 
-def create_pdf(sensor_name, averaging_range, start_time, stop_time, process_start_time, file_dict, threshold_table, output_folder):
+def create_pdf(sensor_name, averaging_range, start_time, stop_time, process_start_time, file_dict, threshold_table, output_folder, header):
     """
     Creates the pdf and returns the full path to where the PDF was written to
     """
@@ -34,6 +37,7 @@ def create_pdf(sensor_name, averaging_range, start_time, stop_time, process_star
     # /////////
 
     pdf = ReportPDF()
+    pdf.set_header(header)
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font('Times', '', 11)
@@ -86,7 +90,7 @@ def create_pdf(sensor_name, averaging_range, start_time, stop_time, process_star
     files = [boxplot_file_path, threshold25_file_path, threshold10_file_path, humidity_file_path]
     # Create the image and spacing for each visualization
     for file_path in files:
-        pdf.image(os.path.join(BASE_DIR, 'resources', 'base', file_path), w=120,h=120)
+        pdf.image(file_path, w=120,h=120)
         pdf.ln(5)
 
     # ///////////////

@@ -1,7 +1,7 @@
 import os
 from data_file import Data_File
 
-def process_file(filepath, output_path, averaging_range, start_time=None, stop_time=None, ):
+def process_file(filepath, output_path, averaging_range, header, start_time=None, stop_time=None):
     '''Interface to Front End
 
     @param filepath: string path to file input
@@ -15,7 +15,7 @@ def process_file(filepath, output_path, averaging_range, start_time=None, stop_t
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    data_obj = Data_File(filepath, output_path, averaging_range, start_time, stop_time)
+    data_obj = Data_File(filepath, output_path, averaging_range, header, start_time, stop_time)
 
     return data_obj.get_output_filepath()
 

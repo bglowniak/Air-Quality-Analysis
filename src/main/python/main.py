@@ -22,8 +22,12 @@ class AppContext(ApplicationContext):
         version = self.build_settings["version"]
         with open(self.get_resource("style.qss")) as f:
             stylesheet = f.read()
+
+        # we use get_resource to guarantee the correct file path because once an application is packaged the path may change
         progress_icon = self.get_resource("loading-icon.gif")
-        main_screen = MainWindow(version, stylesheet, progress_icon)
+        pdf_header = self.get_resource("ATSDR-logo.png")
+
+        main_screen = MainWindow(version, stylesheet, progress_icon, pdf_header)
         main_screen.show()
         return self.app.exec_()
 
@@ -35,7 +39,8 @@ class MainWindow(QMainWindow):
     Args:
         version (str): the current build version of the application
         stylesheet (str): the opened .qss file containing styles for the application
-        progress_icon (str): the path to the progress icon gif located in src/main/resources
+        progress_icon (str): the path to the progress icon gif
+        pdf_header (str): the path to the PDF header image
 
     Attributes:
         main_widget (QWidget): represents the home screen of the app that accepts user input
@@ -44,7 +49,7 @@ class MainWindow(QMainWindow):
         master (QStackedWidget): the master stacked widget that contains all three screens
 
     '''
-    def __init__(self, version, stylesheet, progress_icon):
+    def __init__(self, version, stylesheet, progress_icon, pdf_header):
         super().__init__()
 
         # initialize the three screens (each is a QWidget)
@@ -58,6 +63,8 @@ class MainWindow(QMainWindow):
         self.master.addWidget(self.progress_widget)
         self.master.addWidget(self.complete_widget)
         self.setCentralWidget(self.master)
+
+        self.pdf_header = pdf_header
 
         # finish setting up the window
         self.setWindowTitle("Air Quality Analysis v" + version)
@@ -77,7 +84,8 @@ class MainWindow(QMainWindow):
                                             file_path,
                                             output_path,
                                             ad_number, ad_unit,
-                                            start_time, end_time)
+                                            start_time, end_time,
+                                            self.pdf_header)
 
     # move to the completion screen with the resultant output path
     # if an error occurred, display to the user and return to main screen
@@ -411,6 +419,7 @@ class Processor(QObject):
         ad_unit (str): the selected unit for the averaging duration
         start (QDateTime): the selected start time
         end (QDateTime): the selected end time
+        pdf_header (str): the file path of the PDF header
 
     Attributes:
         result_signal (pyqtSignal): used to emit the resultant output path back to the main thread
@@ -418,13 +427,14 @@ class Processor(QObject):
     '''
     result_signal = pyqtSignal(str, bool)
 
-    def __init__(self, file_path, output_path, ad_num, ad_unit, start, end):
+    def __init__(self, file_path, output_path, ad_num, ad_unit, start, end, pdf_header):
         super().__init__()
         self.file_path = file_path
         self.output_path = output_path
         self.ad_tuple = (ad_num, ad_unit)
         self.start_time = start
         self.end_time = end
+        self.header = pdf_header
 
     def work(self):
         error = False
@@ -432,6 +442,7 @@ class Processor(QObject):
             output = process_file(self.file_path,
                                   self.output_path,
                                   self.ad_tuple,
+                                  self.header,
                                   start_time=self.start_time,
                                   stop_time=self.end_time)
         except Exception as e:
@@ -494,7 +505,7 @@ class ProgressWidget(QWidget):
         self.setLayout(layout)
 
     # takes in all parameters related to the process and spawns a worker to run it
-    def begin_progress(self, file_name, file_path, output_path, ad_num, ad_unit, start, end):
+    def begin_progress(self, file_name, file_path, output_path, ad_num, ad_unit, start, end, pdf_header):
         # populate labels with inputted parameters
         self.file_name_label.setText("File Name: " + file_name)
         self.averaging_label.setText("Averaging Duration: " + str(ad_num) + " " + ad_unit)
@@ -510,7 +521,7 @@ class ProgressWidget(QWidget):
         qApp.processEvents()
 
         # define a worker object, move it to a new thread, and begin the processor work
-        self.processor = Processor(file_path, output_path, ad_num, ad_unit, start, end)
+        self.processor = Processor(file_path, output_path, ad_num, ad_unit, start, end, pdf_header)
         self.processor.moveToThread(self.thread)
         self.thread.started.connect(self.processor.work)
         self.processor.result_signal.connect(self.finish)

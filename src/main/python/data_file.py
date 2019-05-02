@@ -32,7 +32,7 @@ class Data_File():
     @attribute averaging_range: tuple containing integer then string indicating time to average values over
     TODO: @function make_pdf:
     '''
-    def __init__(self, filepath, output_path, averaging_range, start_time=None, stop_time=None):
+    def __init__(self, filepath, output_path, averaging_range, header, start_time=None, stop_time=None):
         self.averaging_range = averaging_range
         self.start_time = start_time
         self.stop_time = stop_time
@@ -45,7 +45,7 @@ class Data_File():
 
         self.gen_statistics()
         self.visualize()
-        self.gen_pdf()
+        self.gen_pdf(header)
 
     def get_output_filepath(self):
         if self.output_folder is not None:
@@ -128,8 +128,7 @@ class Data_File():
         self.file_dict.update({'PM25_thresh': threshold_PM25(self.data_frame, self.output_folder)})
         self.file_dict.update({'PM10_thresh': threshold_PM10(self.data_frame, self.output_folder)})
 
-    def gen_pdf(self):
-        pass
+    def gen_pdf(self, header):
         avg_range_str = str(self.averaging_range[0]) + " " + self.averaging_range[1]
 
         sensor_str = ''
@@ -151,4 +150,4 @@ class Data_File():
         else:
             stop_time = "None"
         proc_start_time = self.proc_start_time.replace(microsecond=0)
-        create_pdf(sensor_str, avg_range_str, str(start_time), str(stop_time), str(proc_start_time), self.file_dict, self.table, self.output_folder)
+        create_pdf(sensor_str, avg_range_str, str(start_time), str(stop_time), str(proc_start_time), self.file_dict, self.table, self.output_folder, header)

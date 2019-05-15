@@ -1,18 +1,18 @@
-# Automated Air Quality Analysis and Data Visualization Tool
+# Automated Air Quality Analysis and Data Visualization Tool  
 
-GT Junior Design Project for the ATSDR/CDC
+GT Junior Design Project for the ATSDR/CDC  
 
-Team Members:
-Austin Bayon
-Brian Glowniak
-Zach Hussin
-Joel Katz
-Pramod Kotipalli
-Thomas Napolitano
+Team Members:  
+Austin Bayon  
+Brian Glowniak  
+Zach Hussin  
+Joel Katz  
+Pramod Kotipalli  
+Thomas Napolitano  
 
-Clients:
-Lt. Aaron Grober
-Lt. Bradley Goodwin
+Clients:  
+Lt. Aaron Grober  
+Lt. Bradley Goodwin  
 
 ## Release Notes - v1.0.0
 
@@ -53,25 +53,20 @@ cd Air-Quality-Analysis
 
 # 2. Set up a virtual environment.
 # This will allow you to install the required libraries locally in the repo.
+# There are two options for this step.
 
-# There are two options for this step. You can either use the built-in Python module venv, or a separate library called virtualenv. We recommend using venv.
+# Option 1: venv (built-in Python library. Recommended)
 
-# Option 1: venv
+python -m venv [path/to/repository]/venv # make sure to include the /venv at the end
 
-python -m venv [path/to/repository]/venv
-
-# make sure to include the /venv at the end
-
-# Option 2: virtualenv
+# Option 2: virtualenv (separate library)
 
 pip install virtualenv==16.1
-
-# If using virtualenv, you must use a version earlier than 16.4 (16.1 definitely works).
-# Refer to a PyInstaller issue here: https://github.com/pyinstaller/pyinstaller/issues/4064
-# In newer versions of virtualenv, PyInstaller (used with fbs freeze to compile the app) doesn't properly collect some libraries
-
 virtualenv -p [path/to/python3] venv
 
+# You must use a version earlier than 16.4 (16.1 definitely works).
+# Refer to a PyInstaller issue here: https://github.com/pyinstaller/pyinstaller/issues/4064
+# In newer versions of virtualenv, PyInstaller (used with fbs freeze to compile the app) doesn't properly collect some libraries
 # If you have more than one installation of Python, be sure to select Python 3.5+
 # The path to Python 3 depends on your computer and where you installed Python.
 # If you are using Bash, you can find it by using $(which python3) in Bash. If this doesn't work, see Troubleshooting below.

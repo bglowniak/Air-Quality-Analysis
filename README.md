@@ -2,17 +2,17 @@
 
 GT Junior Design Project for the ATSDR/CDC
 
-Team Members:  
-Austin Bayon  
-Brian Glowniak  
-Zach Hussin  
-Joel Katz  
-Pramod Kotipalli  
-Thomas Napolitano  
+Team Members:
+Austin Bayon
+Brian Glowniak
+Zach Hussin
+Joel Katz
+Pramod Kotipalli
+Thomas Napolitano
 
-Clients:  
-Lt. Aaron Grober  
-Lt. Bradley Goodwin  
+Clients:
+Lt. Aaron Grober
+Lt. Bradley Goodwin
 
 ## Release Notes - v1.0.0
 
@@ -49,17 +49,30 @@ The only prerequisite is to have Python 3 installed on your machine. The app was
 # You can also download a ZIP file from the Github repository (https://github.com/bglowniak/Air-Quality-Analysis).
 
 git clone https://github.com/bglowniak/Air-Quality-Analysis.git
+cd Air-Quality-Analysis
 
-# 2. Navigate into the folder and initialize a virtual environment.
+# 2. Set up a virtual environment.
 # This will allow you to install the required libraries locally in the repo.
 
-cd Air-Quality-Analysis
-pip install virtualenv
+# There are two options for this step. You can either use the built-in Python module venv, or a separate library called virtualenv. We recommend using venv.
 
-# If you have more than one installation of Python, be sure to select Python 3.5+
+# Option 1: venv
+
+python -m venv [path/to/repository]/venv
+
+# make sure to include the /venv at the end
+
+# Option 2: virtualenv
+
+pip install virtualenv==16.1
+
+# If using virtualenv, you must use a version earlier than 16.4 (16.1 definitely works).
+# Refer to a PyInstaller issue here: https://github.com/pyinstaller/pyinstaller/issues/4064
+# In newer versions of virtualenv, PyInstaller (used with fbs freeze to compile the app) doesn't properly collect some libraries
 
 virtualenv -p [path/to/python3] venv
 
+# If you have more than one installation of Python, be sure to select Python 3.5+
 # The path to Python 3 depends on your computer and where you installed Python.
 # If you are using Bash, you can find it by using $(which python3) in Bash. If this doesn't work, see Troubleshooting below.
 
@@ -73,6 +86,14 @@ call venv/Scripts/activate.bat
 
 # 4. Locally install required libraries
 pip install -r requirements.txt
+
+# If you are using venv instead of virtualenv, run
+
+pip uninstall setuptools
+pip install setuptools
+
+# Little bit hacky, but for some reason, venv installs an earlier version of setuptools that doesn't work properly with fbs
+# To resolve this, uninstall it and reinstall it to force it to move to the correct version
 
 # 5. Build and run the app (virtual environment must be running)
 fbs run
@@ -104,7 +125,7 @@ To package the code into a standalone executable, run
 fbs freeze
 ```
 
-This will create a subfolder titled `target/` that contains the .exe of the application (titled AppName.exe). Then, to create a distributable installer for the application, run
+This will create a subfolder titled `target/` that contains the .exe of the application (titled AppName.exe). If you have issues with fbs freeze, you can add the --debug flag. Then, to create a distributable installer for the application, run
 
 ```shell
 fbs installer

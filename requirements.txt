@@ -3,7 +3,7 @@ boto3==1.9.97
 botocore==1.12.97
 cycler==0.10.0
 docutils==0.14
-fbs==0.6.8
+fbs==0.8.1
 fpdf==1.7.2
 future==0.17.1
 jmespath==0.9.3
